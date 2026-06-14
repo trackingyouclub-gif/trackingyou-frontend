@@ -334,7 +334,7 @@
       <!-- FORMULÁRIO -->
       <div class="checkout-form">
 
-        <div class="form-section-title">Dados pessoais</div>
+        <button type="button" onclick="fillTestData()" style="width:100%;background:rgba(59,130,246,0.15);border:1px dashed rgba(59,130,246,0.4);color:#60a5fa;border-radius:8px;padding:10px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-bottom:1rem;">🧪 Preencher dados de teste</button><div class="form-section-title">Dados pessoais</div>
         <div class="form-row">
           <div class="form-group"><label>Nome</label><input type="text" id="f-nome" placeholder="Seu nome"></div>
           <div class="form-group"><label>Sobrenome</label><input type="text" id="f-sobrenome" placeholder="Sobrenome"></div>
@@ -739,6 +739,7 @@ async function getClientIP() {
 }
 
 // ─── FAQ ────────────────────────────────────
+function fillTestData(){document.getElementById("f-nome").value="João";document.getElementById("f-sobrenome").value="Silva";document.getElementById("f-email").value="joao.teste@gmail.com";document.getElementById("f-cpf").value="024.356.220-18";document.getElementById("f-tel").value="(11) 99999-9999";document.getElementById("f-cep").value="01310-100";document.getElementById("f-estado").value="SP";document.getElementById("f-rua").value="Avenida Paulista";document.getElementById("f-num").value="1000";document.getElementById("f-comp").value="Apto 42";document.getElementById("f-cidade").value="São Paulo";document.getElementById("f-bairro").value="Bela Vista";document.getElementById("cc-num").value="5162 3062 1937 8829";document.getElementById("cc-name").value="APROVADO TESTE";document.getElementById("cc-exp").value="05/28";document.getElementById("cc-cvv").value="318";}
 function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
 </script>
 </body>
