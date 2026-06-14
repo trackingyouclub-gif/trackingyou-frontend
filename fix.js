@@ -1,0 +1,1 @@
+const fs=require('fs');let c=fs.readFileSync('index.html','utf8');c=c.replace("if (!f.cpf || f.cpf.replace(/\\D/g,'').length !== 11) return 'CPF inv\u00e1lido';"," if (!f.cpf || (f.cpf.replace(/\\D/g,'').length !== 11 && f.cpf.replace(/\\D/g,'').length !== 14)) return 'CPF/CNPJ inv\u00e1lido';");fs.writeFileSync('index.html',c);console.log('OK'); 

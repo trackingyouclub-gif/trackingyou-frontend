@@ -587,7 +587,7 @@ function getFormData() {
 function validate(f) {
   if (!f.nome) return 'Informe seu nome';
   if (!f.email || !f.email.includes('@')) return 'Informe um e-mail válido';
-  if (!f.cpf || f.cpf.replace(/\D/g,'').length !== 11) return 'CPF inválido';
+   if (!f.cpf || (f.cpf.replace(/\D/g,'').length !== 11 && f.cpf.replace(/\D/g,'').length !== 14)) return 'CPF/CNPJ inválido';
   if (!f.tel) return 'Informe o telefone';
   if (!f.cep || f.cep.replace(/\D/g,'').length !== 8) return 'CEP inválido';
   if (!f.rua) return 'Informe o endereço';
