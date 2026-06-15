@@ -191,7 +191,7 @@ function render(d){
   document.getElementById('v-email').textContent=v.email;
   document.getElementById('v-id').textContent='ID: '+v.id;
   document.getElementById('v-link').textContent=link;
-  document.getElementById('v-wa').href='https://wa.me/?text='+encodeURIComponent('Conheca o TrackingYou! Rastreamento para veiculos, pessoas e pets.\n\n'+link);
+  document.getElementById('v-wa').href='https://wa.me/?text='+encodeURIComponent('Conheca o TrackingYou! '+link);
   document.getElementById('s-saldo').textContent=fmt(s.saldoDisponivel);
   document.getElementById('s-sacado').textContent=fmt(s.saldoSacado);
   document.getElementById('s-vendas').textContent=s.totalVendas;
