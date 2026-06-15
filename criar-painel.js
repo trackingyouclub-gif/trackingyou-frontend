@@ -154,6 +154,20 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
         <div id="lista-comissoes"><div class="empty">Nenhuma comissao ainda</div></div>
       </div>
     </div>
+<div class="panel-card">
+      <h2>Comprar mais Tags</h2>
+      <p style="color:var(--muted);font-size:.875rem;margin-bottom:1.5rem">Adquira mais tags. As comissoes continuam sendo geradas para sua rede.</p>
+      <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem">
+        <select id="buy-qty" onchange="updateBuyTotal()" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:.875rem;font-family:Inter,sans-serif">
+          <option value="1">1 unidade</option>
+          <option value="2">2 unidades (-10%)</option>
+          <option value="3">3 unidades (-15%)</option>
+          <option value="5">5 unidades (-20%)</option>
+        </select>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;color:var(--blue-bright)" id="buy-total">R$ 299,90</div>
+      </div>
+      <button class="btn" onclick="comprarMais()" style="padding:12px 28px;font-size:.95rem;border-radius:12px">Comprar mais Tags</button>
+    </div>
     <div class="panel-card">
       <h2>Sua Rede de Vendedores</h2>
       <div class="tree-wrap" id="tree-container">
