@@ -599,6 +599,20 @@ function editarVendedor(id, emailAtual){
     .then(d=>{if(d.ok)alert('Dados atualizados!');else alert('Erro: '+d.error);carregarAfiliados();})
     .catch(()=>alert('Erro ao atualizar'));
 }
+
+function editarVendedor(id, emailAtual){
+  const novoEmail=prompt('Email atual: '+emailAtual+'\nNovo email (deixe vazio para manter):',emailAtual);
+  const novaSenha=prompt('Nova senha (deixe vazio para nao alterar):');
+  if(novoEmail===null&&novaSenha===null)return;
+  const body={};
+  if(novoEmail&&novoEmail!==emailAtual)body.email=novoEmail;
+  if(novaSenha&&novaSenha.length>=6)body.novaSenha=novaSenha;
+  if(!Object.keys(body).length){alert('Nada alterado.');return;}
+  fetch(B+'/api/admin/vendedor/'+id+'/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{if(d.ok)alert('Dados atualizados!');else alert('Erro: '+d.error);carregarAfiliados();})
+    .catch(()=>alert('Erro ao atualizar'));
+}
+
 function fecharEtiqueta(){
   document.getElementById('etiqueta-modal').style.display='none';
 }
