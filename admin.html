@@ -458,7 +458,7 @@ async function carregarSaques(){
       +'<td><span class="status-badge '+(s.status==='pago'?'pago':'solicitado')+'">'+s.status+'</span></td>'
       +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(s.data_solicitacao)+'</td>'
       +'<td><div class="btn-group">'
-      +(s.status==='solicitado'?'<button class="btn green" onclick="aprovarSaque(''+s.id+'')">Aprovar</button><button class="btn red" onclick="recusarSaque(''+s.id+'')">Recusar</button>':'—')
+      +(s.status==='solicitado'?'<button class="btn green" onclick="aprovarSaque(this.dataset.id)">Aprovar</button><button class="btn red" onclick="recusarSaque(this.dataset.id)">Recusar</button>':'—')
       +'</div></td>'
       +'</tr>').join('');
   }catch(e){tbody.innerHTML='<tr><td colspan="6" class="empty">Erro ao carregar</td></tr>';}
