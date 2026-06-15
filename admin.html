@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TrackingYou Admin v2</title>
+<title>TrackingYou Admin v3</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -348,7 +348,7 @@ function showTab(t){
   if(t==='afiliados')carregarAfiliados();
   if(t==='comissoes')carregarComissoes();
   if(t==='saques')carregarSaques();
-if(t==='estoque')carregarEstoque();
+
 }
 
 function fmt(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',');}
