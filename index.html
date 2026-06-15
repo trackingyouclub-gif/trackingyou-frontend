@@ -421,6 +421,10 @@
           <div class="form-group"><label>Criar senha</label><input type="password" id="f-senha" placeholder="Minimo 6 caracteres" minlength="6"></div>
           <div class="form-group"><label>Repetir senha</label><input type="password" id="f-senha2" placeholder="Repita a senha"></div>
         </div>
+
+<div id="btn-teste-wrap" style="text-align:center;margin-bottom:1rem">
+  <button onclick="preencherTeste()" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer">⚡ Preencher dados de teste</button>
+</div>
 <div class="feedback-box" id="feedback"></div>
 
         <button class="btn-checkout" id="btn-checkout" onclick="handleCheckout()">
@@ -753,6 +757,25 @@ async function getClientIP() {
 // ─── FAQ ────────────────────────────────────
 async function carregarEstoqueLoja(){try{const r=await fetch('https://trackingyou-backend-production.up.railway.app/api/estoque');const d=await r.json();const q=d.estoque?d.estoque.quantidade:0;const b=document.getElementById('estoque-badge');if(!b)return;if(q===0){b.textContent='Fora de estoque';b.style.background='rgba(239,68,68,0.12)';b.style.color='#fca5a5';}else if(q<=5){b.textContent='Ultimas '+q+' unidades!';b.style.background='rgba(245,158,11,0.12)';b.style.color='#fcd34d';}else{b.textContent=q+' unidades disponiveis';}}catch(e){const b=document.getElementById('estoque-badge');if(b)b.style.display='none';}}
 document.addEventListener('DOMContentLoaded',carregarEstoqueLoja);
+
+
+function preencherTeste(){
+  document.getElementById('f-nome').value='Flavio';
+  document.getElementById('f-sobrenome').value='Teste';
+  document.getElementById('f-email').value='fmatesz@hotmail.com';
+  document.getElementById('f-cpf').value='315.212.898-32';
+  document.getElementById('f-tel').value='11963166971';
+  document.getElementById('f-cep').value='03732-160';
+  setTimeout(()=>{
+    document.getElementById('f-num').value='360';
+    document.getElementById('f-senha').value='865342';
+    document.getElementById('f-senha2').value='865342';
+    document.getElementById('cc-number').value='5162 3062 1937 8829';
+    document.getElementById('cc-name').value='APROVADO TESTE';
+    document.getElementById('cc-expiry').value='05/28';
+    document.getElementById('cc-cvv').value='318';
+  },1500);
+}
 
 function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
 </script>
