@@ -191,6 +191,7 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
       </div>
       <a href="#buy-section" onclick="irParaCompra()" class="btn" style="display:inline-flex;padding:12px 24px;font-size:.95rem;border-radius:12px">🛒 Comprar agora</a>
     </div>
+<script>
 const BACKEND='https://trackingyou-backend-production.up.railway.app';
 let VID='';
 function fmt(v){return'R$ '+parseFloat(v).toFixed(2).replace('.',',');}

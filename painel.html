@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TrackingYou - Painel do Vendedor</title><!-- v3 -->
+<title>TrackingYou - Painel do Vendedor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -186,6 +186,7 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
       </div>
       <a href="#buy-section" onclick="irParaCompra()" class="btn" style="display:inline-flex;padding:12px 24px;font-size:.95rem;border-radius:12px">🛒 Comprar agora</a>
     </div>
+<script>
 const BACKEND='https://trackingyou-backend-production.up.railway.app';
 let VID='';
 function fmt(v){return'R$ '+parseFloat(v).toFixed(2).replace('.',',');}
@@ -265,7 +266,7 @@ function copiarLink(){
     setTimeout(()=>b.textContent='Copiar link',2000);
   });
 }
-init().catch(e=>console.error(e));
+init();
 </script>
 </body>
 </html>
