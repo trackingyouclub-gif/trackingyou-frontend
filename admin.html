@@ -430,7 +430,7 @@ async function carregarComissoes(){
       +'<td style="font-family:monospace;font-size:.7rem;color:var(--muted)">'+c.venda_id.slice(0,8)+'...</td>'
       +'<td><span class="status-badge '+c.status+'">'+c.status+'</span></td>'
       +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(c.data_criacao)+'</td>'
-      +'<td>'+(status==='pendente'?'<button class="btn green" onclick="pagarComissao(''+c.id+'')">Marcar pago</button>':'—')+'</td>'
+      +'<td>'+(status==='pendente'?'<button class="btn green" onclick="pagarComissao(this.dataset.id)" data-id="+c.id+">Marcar pago</button>':'—')+'</td>'
       +'</tr>').join('');
   }catch(e){tbody.innerHTML='<tr><td colspan="8" class="empty">Erro ao carregar</td></tr>';}
 }
