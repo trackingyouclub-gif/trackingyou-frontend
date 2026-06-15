@@ -440,7 +440,7 @@ async function carregarAfiliados(){
       +'<td style="text-align:center">'+(u.total_vendas||0)+'</td>'
       +'<td style="color:var(--success);font-weight:600">'+fmt(u.total_comissoes||0)+'</td>'
       +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(u.data_cadastro)+'</td>'
-      +'<td><a href="painel.html?id='+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a></td>'
+      +'<td><div class="btn-group"><a href="painel.html?id='+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a><button class="btn warn" onclick="editarVendedor(\''+u.id+'\',\''+u.email+'\')" style="font-size:.75rem">Editar</button></div></td>'+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a></td>'
       +'</tr>').join('');
   }catch(e){tbody.innerHTML='<tr><td colspan="9" class="empty">Erro ao carregar</td></tr>';}
 }
@@ -585,6 +585,19 @@ async function adicionarEstoque(){
     document.getElementById('est-motivo').value='';
     carregarEstoque();
   }catch(e){fb.textContent='Erro: '+e.message;fb.className='fb error';fb.style.display='block';}
+}
+function editarVendedor(id, emailAtual){
+  const novoEmail = prompt('Email atual: '+emailAtual+'\nNovo email (deixe vazio para manter):', emailAtual);
+  const novaSenha = prompt('Nova senha (deixe vazio para nao alterar):');
+  if(novoEmail===null && novaSenha===null) return;
+  const body = {};
+  if(novoEmail && novoEmail !== emailAtual) body.email = novoEmail;
+  if(novaSenha && novaSenha.length >= 6) body.novaSenha = novaSenha;
+  if(!Object.keys(body).length){alert('Nada alterado.');return;}
+  fetch(B+'/api/admin/vendedor/'+id+'/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json())
+    .then(d=>{if(d.ok)alert('Dados atualizados!');else alert('Erro: '+d.error);carregarAfiliados();})
+    .catch(()=>alert('Erro ao atualizar'));
 }
 function fecharEtiqueta(){
   document.getElementById('etiqueta-modal').style.display='none';
