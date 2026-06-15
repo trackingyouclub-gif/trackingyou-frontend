@@ -301,7 +301,11 @@
           <h3>🛒 Resumo do Pedido</h3>
           <div class="order-selector">
             <label>Produto</label>
-            <input type="hidden" id="qty-select" value="299.90" data-name="TrackingYou Tag+" data-key="tag">
+            <select class="qty-select" id="product-select" onchange="updateOrder()">
+              <option value="197" data-name="Tag Veicular" data-key="veicular">Tag Veicular — R$ 197</option>
+              <option value="229" data-name="Tag Família" data-key="familia" selected>Tag Família — R$ 229</option>
+              <option value="349" data-name="Kit Completo" data-key="kit">Kit Completo — R$ 349</option>
+            </select>
           </div>
           <div class="order-selector">
             <label>Quantidade</label>
