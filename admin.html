@@ -138,7 +138,6 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </nav>
 
   <div class="tabs">
-if(t==='estoque')carregarEstoque();
     <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
     <div class="tab" onclick="showTab('pedidos')">Pedidos</div>
     <div class="tab" onclick="showTab('afiliados')">Afiliados</div>
@@ -349,6 +348,7 @@ function showTab(t){
   if(t==='afiliados')carregarAfiliados();
   if(t==='comissoes')carregarComissoes();
   if(t==='saques')carregarSaques();
+if(t==='estoque')carregarEstoque();
 }
 
 function fmt(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',');}
