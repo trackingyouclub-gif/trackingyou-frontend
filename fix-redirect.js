@@ -3,7 +3,7 @@ let c = fs.readFileSync('index.html', 'utf8');
 
 // Após pagamento aprovado com cartao, redireciona para painel
 c = c.replace(
-  "showFeedback('✅ Pagamento aprovado! Você receberá a confirmação por e-mail em breve.','success');\n  document.getElementById('btn-checkout').disabled = true;",
+  "showFeedback('✅ Pagamento aprovado! Você receberá a confirmação por e-mail em breve.', 'success');\n  document.getElementById('btn-checkout').disabled = true;",
   `showFeedback('✅ Pagamento aprovado! Redirecionando para seu painel...','success');
   document.getElementById('btn-checkout').disabled = true;
   setTimeout(async()=>{
