@@ -265,7 +265,7 @@ function copiarLink(){
     setTimeout(()=>b.textContent='Copiar link',2000);
   });
 }
-init();
+init().catch(e=>console.error(e));
 </script>
 </body>
 </html>
