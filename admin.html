@@ -341,7 +341,7 @@ function logout(){
 }
 
 function showTab(t){
-  document.querySelector(".tabs").scrollIntoView({behavior:"smooth"});
+  setTimeout(()=>document.querySelector(".tab-content.active").scrollIntoView({behavior:"smooth",block:"start"}),100);
   document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',['dashboard','pedidos','afiliados','comissoes','saques','estoque'][i]===t));
   document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});
