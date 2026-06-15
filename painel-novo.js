@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+const fs = require('fs');
+
+const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -210,4 +212,7 @@ function copiarLink(){
 init();
 </script>
 </body>
-</html>
+</html>`;
+
+fs.writeFileSync('painel.html', html);
+console.log('OK - painel criado!');
