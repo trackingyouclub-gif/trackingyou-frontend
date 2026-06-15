@@ -138,11 +138,12 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </nav>
 
   <div class="tabs">
+if(t==='estoque')carregarEstoque();
     <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
     <div class="tab" onclick="showTab('pedidos')">Pedidos</div>
     <div class="tab" onclick="showTab('afiliados')">Afiliados</div>
     <div class="tab" onclick="showTab('comissoes')">Comissões</div>
-    <div class="tab" onclick="showTab('saques')">Saques</div>
+    <div class="tab" onclick="showTab('saques')">Saques</div><div class="tab" onclick="showTab('estoque')">Estoque</div>
   </div>
 
   <!-- DASHBOARD -->
@@ -226,6 +227,33 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
+<!-- ESTOQUE -->
+  <div class="tab-content" id="tab-estoque">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700">Controle de Estoque</h2>
+    </div>
+    <div class="stat-grid" style="max-width:600px">
+      <div class="stat-card green"><div class="sl">Disponível</div><div class="sv green" id="est-disponivel">0</div></div>
+      <div class="stat-card warn"><div class="sl">Reservado</div><div class="sv warn" id="est-reservado">0</div></div>
+      <div class="stat-card blue"><div class="sl">Preço</div><div class="sv blue" id="est-preco">R$ 299,90</div></div>
+    </div>
+    <div class="table-wrap" style="max-width:500px;margin-bottom:2rem">
+      <div class="table-header"><h2>Adicionar Estoque</h2></div>
+      <div style="padding:1.5rem">
+        <div class="fg"><label>Quantidade</label><input type="number" id="est-qty" placeholder="Ex: 50" min="1" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;width:100%"></div>
+        <div class="fg"><label>Motivo</label><input type="text" id="est-motivo" placeholder="Ex: Compra fornecedor - NF 1234" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;width:100%"></div>
+        <button class="btn" style="width:100%;padding:12px;font-size:.95rem;border-radius:var(--r)" onclick="adicionarEstoque()">+ Adicionar ao Estoque</button>
+        <div class="fb" id="fb-estoque" style="margin-top:1rem"></div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header"><h2>Últimas Movimentações</h2></div>
+      <table>
+        <thead><tr><th>Tipo</th><th>Quantidade</th><th>Motivo</th><th>Data</th></tr></thead>
+        <tbody id="est-movimentos"><tr><td colspan="4" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 <!-- MODAL ETIQUETA -->
 <div class="etiqueta-modal" id="etiqueta-modal">
   <div class="etiqueta-box" id="etiqueta-content">
@@ -508,6 +536,39 @@ function gerarEtiqueta(pedido,servico){
   document.getElementById('et-barcode').textContent=code;
 }
 
+async function carregarEstoque(){
+  try{
+    const r=await fetch(B+'/api/estoque');
+    const d=await r.json();
+    document.getElementById('est-disponivel').textContent=d.estoque?.quantidade||0;
+    document.getElementById('est-reservado').textContent=d.estoque?.quantidade_reservada||0;
+    document.getElementById('est-preco').textContent=fmt(d.estoque?.preco||299.90);
+    const tbody=document.getElementById('est-movimentos');
+    if(!d.movimentos?.length){tbody.innerHTML='<tr><td colspan="4" class="empty">Nenhuma movimentacao</td></tr>';return;}
+    tbody.innerHTML=d.movimentos.map(m=>'<tr>'
+      +'<td><span class="status-badge '+(m.tipo==='entrada'?'pago':'pendente')+'">'+m.tipo+'</span></td>'
+      +'<td style="font-weight:700">'+(m.tipo==='entrada'?'+':'-')+m.quantidade+'</td>'
+      +'<td style="color:var(--muted);font-size:.8rem">'+m.motivo+'</td>'
+      +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(m.criado_em)+'</td>'
+      +'</tr>').join('');
+  }catch(e){console.error(e);}
+}
+
+async function adicionarEstoque(){
+  const qty=parseInt(document.getElementById('est-qty').value);
+  const motivo=document.getElementById('est-motivo').value.trim();
+  const fb=document.getElementById('fb-estoque');
+  if(!qty||qty<=0){fb.textContent='Informe uma quantidade valida';fb.className='fb error';fb.style.display='block';return;}
+  try{
+    const r=await fetch(B+'/api/admin/estoque/entrada',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade:qty,motivo})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    fb.textContent='Estoque atualizado! Total: '+d.quantidade+' unidades';fb.className='fb success';fb.style.display='block';
+    document.getElementById('est-qty').value='';
+    document.getElementById('est-motivo').value='';
+    carregarEstoque();
+  }catch(e){fb.textContent='Erro: '+e.message;fb.className='fb error';fb.style.display='block';}
+}
 function fecharEtiqueta(){
   document.getElementById('etiqueta-modal').style.display='none';
 }
