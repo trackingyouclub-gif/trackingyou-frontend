@@ -301,17 +301,14 @@
           <h3>🛒 Resumo do Pedido</h3>
           <div class="order-selector">
             <label>Produto</label>
-            <select class="qty-select" id="product-select" onchange="updateOrder()" style="display:none">
-              <option value="299.90" data-name="TrackingYou Tag+" data-key="tag" selected>TrackingYou Tag+ — R$ 299,90</option>
+            <select class="qty-select" id="product-select" style="display:none">
+              <option value="299.90" data-name="TrackingYou Tag+" data-key="tag" selected>TrackingYou Tag+</option>
             </select>
           </div>
           <div class="order-selector">
             <label>Quantidade</label>
             <select class="qty-select" id="qty-select" onchange="updateOrder()">
               <option value="1">1 unidade</option>
-              <option value="2">2 unidades (-10%)</option>
-              <option value="3">3 unidades (-15%)</option>
-              <option value="5">5 unidades (-20%)</option>
             </select>
           </div>
           <div class="order-item"><span class="item-name" id="order-product-name">Tag Família</span><span class="item-price" id="order-unit-price">R$ 229</span></div>
@@ -476,7 +473,7 @@ const products = {
   familia:  { label: 'Tag Família',  price: 229 },
   kit:      { label: 'Kit Completo', price: 349 },
 };
-const discounts = { 1: 0, 2: 0.10, 3: 0.15, 5: 0.20 };
+const discounts = { 1: 0 };
 
 // ─── ORDER SUMMARY ───────────────────────────
 function formatBRL(v) {
