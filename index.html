@@ -212,7 +212,8 @@
   <h1>Saiba onde estão as pessoas e coisas que <em>você ama</em></h1>
   <p class="sub">Tags inteligentes com rastreamento em tempo real para veículos, família e objetos. Configure em minutos, monitore para sempre.</p>
   <div class="hero-cta-group">
-    <a href="#checkout" class="btn-primary">Garantir minha Tag →</a>
+    <div style="margin-bottom:1rem"><span id="estoque-badge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:#6ee7b7;padding:6px 14px;border-radius:100px;font-size:0.78rem;font-weight:700">Verificando estoque...</span></div>
+<a href="#checkout" class="btn-primary">Garantir minha Tag →</a>
     <a href="#como-funciona" class="btn-ghost">Ver como funciona</a>
   </div>
   <div class="stats-bar">
@@ -239,60 +240,34 @@
 </section>
 
 <!-- PRODUTOS -->
-<section class="products-section" id="produtos">
+<section class="products-section" id="produto">
   <div class="container">
-    <div class="section-eyebrow">Produtos</div>
-    <h2 class="section-title">Escolha o kit ideal para você</h2>
-    <p class="section-sub">Tags físicas compactas com GPS + Bluetooth. Sem contratos.</p>
-    <div class="product-single" style="max-width:800px;margin:3rem auto 0;background:var(--card);border:1px solid var(--blue-border);border-radius:var(--radius-lg);padding:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:center">
-  <div style="text-align:center">
-    <div style="width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1a2a4a,#05080f);border:1px solid var(--blue-border);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 0 60px rgba(59,130,246,0.15)">
-      <span style="font-size:4rem">📍</span>
-    </div>
-    <div style="font-size:0.75rem;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">TrackingYou Tag+</div>
-  </div>
-  <div>
-    <div class="product-badge">Mais vendido</div>
-    <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem">Tag Rastreadora Universal</h3>
-    <p style="font-size:0.9rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Rastreamento preciso para veículos, família e pets. Discreta, resistente e com bateria de até 2 anos.</p>
-    <ul class="product-features">
-      <li>GPS em tempo real (30s)</li>
-      <li>Bateria até 2 anos</li>
-      <li>Resistente à água (IP67)</li>
-      <li>Cerca virtual com alerta</li>
-      <li>Histórico de 90 dias</li>
-      <li>App gratuito iOS e Android</li>
-      <li>3 meses de plataforma inclusa</li>
-    </ul>
-    <div class="product-price">
-      <div class="price-val">R$ 299,90</div>
-      <div class="price-desc">por tag · sem mensalidade nos primeiros 3 meses</div>
-    </div>
-    <a href="#checkout" class="btn-product">Comprar agora →</a>
-  </div>
-</div>
-        <a href="#checkout" class="btn-product" onclick="selectProduct('veicular')">Comprar Tag Veicular</a>
+    <div class="section-eyebrow">Produto</div>
+    <h2 class="section-title">TrackingYou Tag+</h2>
+    <p class="section-sub">Uma tag para veiculos, pessoas e pets.</p>
+    <div style="max-width:800px;margin:3rem auto 0;background:var(--card);border:1px solid var(--blue-border);border-radius:var(--radius-lg);padding:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:center">
+      <div style="text-align:center">
+        <div style="width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1a2a4a,#05080f);border:1px solid var(--blue-border);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem"><span style="font-size:4rem">📍</span></div>
+        <div style="font-size:0.75rem;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">TrackingYou Tag+</div>
       </div>
-      <div class="product-card featured">
+      <div>
         <div class="product-badge">Mais vendido</div>
-        <span class="product-icon">👨‍👩‍👧</span>
-        <h3>Tag Família</h3>
-        <p class="desc">Monitore filhos, idosos e pessoas queridas. Discreta e com botão de emergência.</p>
+        <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem">Tag Rastreadora Universal</h3>
+        <p style="font-size:0.9rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Rastreamento para veiculos, familia e pets. Discreta e com bateria de ate 2 anos.</p>
         <ul class="product-features">
-          <li>GPS + Bluetooth dual</li><li>Botão SOS integrado</li><li>Cerca virtual com alerta</li><li>App compartilhável</li><li>Design compacto e leve</li>
+          <li>GPS em tempo real (30s)</li>
+          <li>Bateria ate 2 anos</li>
+          <li>Resistente a agua (IP67)</li>
+          <li>Cerca virtual com alerta</li>
+          <li>Historico de 90 dias</li>
+          <li>App gratuito iOS e Android</li>
+          <li>3 meses de plataforma inclusa</li>
         </ul>
-        <div class="product-price"><div class="price-val">R$ 229</div><div class="price-desc">por tag · plataforma inclusa 3 meses grátis</div></div>
-        <a href="#checkout" class="btn-product" onclick="selectProduct('familia')">Comprar Tag Família</a>
-      </div>
-      <div class="product-card">
-        <span class="product-icon">📦</span>
-        <h3>Kit Completo</h3>
-        <p class="desc">1 Tag Veicular + 1 Tag Família + acesso premium 12 meses.</p>
-        <ul class="product-features">
-          <li>Tudo dos planos acima</li><li>Plataforma premium 12 meses</li><li>Suporte prioritário</li><li>Relatórios avançados</li><li>Desconto de 30%</li>
-        </ul>
-        <div class="product-price"><div class="price-val">R$ 349</div><div class="price-desc">kit completo · economize R$77</div></div>
-        <a href="#checkout" class="btn-product ghost" onclick="selectProduct('kit')">Comprar Kit Completo</a>
+        <div class="product-price">
+          <div class="price-val">R$ 299,90</div>
+          <div class="price-desc">por tag - sem mensalidade nos primeiros 3 meses</div>
+        </div>
+        <a href="#checkout" class="btn-product">Comprar agora</a>
       </div>
     </div>
   </div>
@@ -327,9 +302,9 @@
           <div class="order-selector">
             <label>Produto</label>
             <select class="qty-select" id="product-select" onchange="updateOrder()">
-              <option </option>
-              <option </option>
-              <option </option>
+              <option value="197" data-name="Tag Veicular" data-key="veicular">Tag Veicular — R$ 197</option>
+              <option value="229" data-name="Tag Família" data-key="familia" selected>Tag Família — R$ 229</option>
+              <option value="349" data-name="Kit Completo" data-key="kit">Kit Completo — R$ 349</option>
             </select>
           </div>
           <div class="order-selector">
@@ -757,19 +732,7 @@ async function getClientIP() {
 }
 
 // ─── FAQ ────────────────────────────────────
-
-async function carregarEstoqueLoja(){
-  try{
-    const r=await fetch('https://trackingyou-backend-production.up.railway.app/api/estoque');
-    const d=await r.json();
-    const q=d.estoque?d.estoque.quantidade:0;
-    const badge=document.getElementById('estoque-badge');
-    if(!badge)return;
-    if(q===0){badge.textContent='Fora de estoque';badge.style.background='rgba(239,68,68,0.12)';badge.style.borderColor='rgba(239,68,68,0.25)';badge.style.color='#fca5a5';}
-    else if(q<=5){badge.textContent='Ultimas '+q+' unidades!';badge.style.background='rgba(245,158,11,0.12)';badge.style.borderColor='rgba(245,158,11,0.25)';badge.style.color='#fcd34d';}
-    else{badge.textContent=q+' unidades disponiveis';}
-  }catch(e){const b=document.getElementById('estoque-badge');if(b)b.style.display='none';}
-}
+async function carregarEstoqueLoja(){try{const r=await fetch('https://trackingyou-backend-production.up.railway.app/api/estoque');const d=await r.json();const q=d.estoque?d.estoque.quantidade:0;const b=document.getElementById('estoque-badge');if(!b)return;if(q===0){b.textContent='Fora de estoque';b.style.background='rgba(239,68,68,0.12)';b.style.color='#fca5a5';}else if(q<=5){b.textContent='Ultimas '+q+' unidades!';b.style.background='rgba(245,158,11,0.12)';b.style.color='#fcd34d';}else{b.textContent=q+' unidades disponiveis';}}catch(e){const b=document.getElementById('estoque-badge');if(b)b.style.display='none';}}
 document.addEventListener('DOMContentLoaded',carregarEstoqueLoja);
 
 function toggleFaq(el) { el.parentElement.classList.toggle('open'); }

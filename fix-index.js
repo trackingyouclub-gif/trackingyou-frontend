@@ -43,6 +43,18 @@ c = c.replace(/value="197"[^>]*>Tag Veicular[^<]*/g, '');
 c = c.replace(/value="229"[^>]*>Tag Família[^<]*/g, '');
 c = c.replace(/value="349"[^>]*>Kit Completo[^<]*/g, '');
 
+// Remove secao products-grid original
+const idxGrid = c.indexOf('<section class="products-section"');
+if(idxGrid > -1) {
+  let depth = 0;
+  let i = idxGrid;
+  while(i < c.length) {
+    if(c.slice(i,i+8) === '<section') depth++;
+    if(c.slice(i,i+10) === '</section>') { depth--; if(depth===0){i+=10;break;} }
+    i++;
+  }
+  c = c.slice(0, idxGrid) + c.slice(i);
+}
 fs.writeFileSync('index.html', c);
 console.log('OK - produto unico aplicado!');
 console.log('product-single:', c.includes('product-single'));
