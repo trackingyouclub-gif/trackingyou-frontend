@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrackingYou — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080c14;--bg2:#0e1524;--card:#111827;--card2:#172035;--blue:#3b82f6;--blue-bright:#60a5fa;--blue-glow:rgba(59,130,246,0.15);--blue-border:rgba(59,130,246,0.3);--text:#f0f4ff;--muted:#7f8ea8;--border:rgba(255,255,255,0.07);--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--r:12px;--r2:18px}
+body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOGIN */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:2.5rem;width:100%;max-width:400px}
+.login-logo{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:.5rem}
+.login-logo span{color:var(--blue-bright)}
+.login-sub{text-align:center;color:var(--muted);font-size:.875rem;margin-bottom:2rem}
+.fg{margin-bottom:1rem}
+.fg label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.fg input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;font-family:Inter,sans-serif;transition:border-color .2s}
+.fg input:focus{border-color:var(--blue)}
+.fg input::placeholder{color:var(--muted)}
+.btn-login{width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--r);padding:14px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s;margin-top:.5rem}
+.btn-login:hover{background:var(--blue-bright)}
+.login-err{display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;font-size:.875rem;color:#fca5a5;margin-top:1rem;text-align:center}
+
+/* LAYOUT */
+.admin-layout{display:none;min-height:100vh}
+nav{background:rgba(8,12,20,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700}.logo span{color:var(--blue-bright)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.admin-badge{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:5px 12px;border-radius:100px;font-size:.75rem;font-weight:700}
+.btn-logout{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer}
+.btn-logout:hover{border-color:var(--danger);color:#fca5a5}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 2rem;background:var(--bg2);overflow-x:auto}
+.tab{padding:1rem 1.25rem;font-size:.875rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.tab.active{color:var(--blue-bright);border-bottom-color:var(--blue-bright)}
+.tab:hover{color:var(--text)}
+
+/* CONTENT */
+.tab-content{display:none;padding:2rem;max-width:1200px;margin:0 auto}
+.tab-content.active{display:block}
+
+/* CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem}
+.stat-card.blue{border-color:var(--blue-border)}
+.stat-card.green{border-color:rgba(16,185,129,.3)}
+.stat-card.warn{border-color:rgba(245,158,11,.3)}
+.stat-card.red{border-color:rgba(239,68,68,.3)}
+.sl{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.sv{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700}
+.sv.blue{color:var(--blue-bright)}
+.sv.green{color:var(--success)}
+.sv.warn{color:var(--warning)}
+.sv.red{color:var(--danger)}
+
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:2rem}
+.table-header{display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
+.table-header h2{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:left;font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);background:var(--bg2)}
+td{padding:12px 16px;font-size:.875rem;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:700}
+.status-badge.pago{background:rgba(16,185,129,.15);color:var(--success)}
+.status-badge.pendente{background:rgba(245,158,11,.15);color:var(--warning)}
+.status-badge.solicitado{background:rgba(59,130,246,.15);color:var(--blue-bright)}
+
+/* BUTTONS */
+.btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:.8rem;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.btn:hover{opacity:.85}
+.btn.green{background:var(--success)}
+.btn.red{background:var(--danger)}
+.btn.warn{background:var(--warning);color:#000}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn.ghost:hover{border-color:var(--blue-border);color:var(--blue-bright)}
+.btn-group{display:flex;gap:6px}
+
+/* ETIQUETA */
+.etiqueta-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.etiqueta-box{background:#fff;color:#000;border-radius:8px;padding:2rem;max-width:500px;width:100%;font-family:monospace}
+.etiqueta-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:1rem;border-bottom:2px solid #000}
+.etiqueta-title{font-size:1.2rem;font-weight:700}
+.etiqueta-servico{background:#000;color:#fff;padding:4px 12px;border-radius:4px;font-size:.875rem;font-weight:700}
+.etiqueta-section{margin-bottom:1rem}
+.etiqueta-label{font-size:.7rem;font-weight:700;text-transform:uppercase;color:#666;margin-bottom:2px}
+.etiqueta-value{font-size:.95rem;font-weight:600;color:#000}
+.etiqueta-divider{border:none;border-top:1px dashed #999;margin:1rem 0}
+.etiqueta-barcode{text-align:center;margin:1rem 0;font-size:2rem;letter-spacing:4px}
+.etiqueta-actions{display:flex;gap:8px;margin-top:1rem}
+.btn-print{background:#000;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-weight:700;cursor:pointer;flex:1}
+.btn-close-et{background:#f5f5f5;color:#000;border:1px solid #ddd;border-radius:6px;padding:10px 20px;font-weight:700;cursor:pointer;flex:1}
+@media print{.etiqueta-actions{display:none}}
+
+/* EMPTY */
+.empty{text-align:center;padding:3rem;color:var(--muted);font-size:.875rem}
+.loading-inline{color:var(--muted);font-size:.875rem;padding:2rem;text-align:center}
+
+/* FEEDBACK */
+.fb{display:none;padding:12px 14px;border-radius:8px;font-size:.875rem;font-weight:500;margin-top:.75rem}
+.fb.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#6ee7b7}
+.fb.error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
+
+/* SEARCH */
+.search-bar{background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 14px;font-size:.875rem;outline:none;font-family:Inter,sans-serif;width:220px}
+.search-bar:focus{border-color:var(--blue)}
+.search-bar::placeholder{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">Tracking<span>You</span></div>
+    <div class="login-sub">Painel Administrativo</div>
+    <div class="fg"><label>CNPJ</label><input type="text" id="l-cnpj" placeholder="00.000.000/0001-00" value="64.890.295/0001-00"></div>
+    <div class="fg"><label>Senha</label><input type="password" id="l-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+    <button class="btn-login" onclick="login()">Entrar</button>
+    <div class="login-err" id="login-err">CNPJ ou senha incorretos</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="admin-layout" id="admin-layout">
+  <nav>
+    <div class="logo">Tracking<span>You</span> <span style="font-size:.75rem;color:var(--muted);font-weight:400;margin-left:8px">Admin</span></div>
+    <div class="nav-right">
+      <div class="admin-badge">ADMIN</div>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+  </nav>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
+    <div class="tab" onclick="showTab('pedidos')">Pedidos</div>
+    <div class="tab" onclick="showTab('afiliados')">Afiliados</div>
+    <div class="tab" onclick="showTab('comissoes')">Comissões</div>
+    <div class="tab" onclick="showTab('saques')">Saques</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="stat-grid">
+      <div class="stat-card blue"><div class="sl">Total vendido</div><div class="sv blue" id="d-total">R$ 0,00</div></div>
+      <div class="stat-card green"><div class="sl">Pedidos pagos</div><div class="sv green" id="d-pagos">0</div></div>
+      <div class="stat-card warn"><div class="sl">Pedidos pendentes</div><div class="sv warn" id="d-pendentes">0</div></div>
+      <div class="stat-card red"><div class="sl">Comissões a pagar</div><div class="sv red" id="d-comissoes">R$ 0,00</div></div>
+      <div class="stat-card blue"><div class="sl">Total afiliados</div><div class="sv blue" id="d-afiliados">0</div></div>
+      <div class="stat-card warn"><div class="sl">Saques pendentes</div><div class="sv warn" id="d-saques">0</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><h2>Últimas vendas</h2></div>
+      <table>
+        <thead><tr><th>Comprador</th><th>Valor</th><th>Vendedor</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+        <tbody id="dash-vendas"><tr><td colspan="6" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PEDIDOS -->
+  <div class="tab-content" id="tab-pedidos">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700">Todos os Pedidos</h2>
+      <input class="search-bar" placeholder="Buscar comprador..." oninput="filtrarPedidos(this.value)">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Comprador</th><th>E-mail</th><th>Valor</th><th>Vendedor</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+        <tbody id="tab-pedidos-body"><tr><td colspan="8" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AFILIADOS -->
+  <div class="tab-content" id="tab-afiliados">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700">Rede de Afiliados</h2>
+      <input class="search-bar" placeholder="Buscar afiliado...">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Nível</th><th>Indicado por</th><th>Vendas</th><th>Comissões</th><th>Cadastro</th><th>Painel</th></tr></thead>
+        <tbody id="tab-afiliados-body"><tr><td colspan="9" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- COMISSÕES -->
+  <div class="tab-content" id="tab-comissoes">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700">Comissões</h2>
+      <div style="display:flex;gap:8px">
+        <select id="filtro-comissao" onchange="carregarComissoes()" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 12px;font-size:.875rem">
+          <option value="pendente">Pendentes</option>
+          <option value="pago">Pagas</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Beneficiário</th><th>Nível</th><th>%</th><th>Valor</th><th>Venda ID</th><th>Status</th><th>Data</th><th>Ação</th></tr></thead>
+        <tbody id="tab-comissoes-body"><tr><td colspan="8" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SAQUES -->
+  <div class="tab-content" id="tab-saques">
+    <div style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700">Solicitações de Saque</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Vendedor</th><th>Valor</th><th>Chave PIX</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+        <tbody id="tab-saques-body"><tr><td colspan="6" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ETIQUETA -->
+<div class="etiqueta-modal" id="etiqueta-modal">
+  <div class="etiqueta-box" id="etiqueta-content">
+    <div class="etiqueta-header">
+      <div class="etiqueta-title">ETIQUETA DE ENVIO</div>
+      <div class="etiqueta-servico" id="et-servico">SEDEX</div>
+    </div>
+
+    <div class="etiqueta-section">
+      <div class="etiqueta-label">Remetente</div>
+      <div class="etiqueta-value">MF RASTREADORES E SOLUÇÕES TECNOLÓGICAS LTDA</div>
+      <div class="etiqueta-value">Rua dos Trilhos, 360</div>
+      <div class="etiqueta-value">CEP: 03732-160 — São Paulo/SP</div>
+      <div class="etiqueta-value">CNPJ: 64.890.295/0001-00</div>
+    </div>
+
+    <hr class="etiqueta-divider">
+
+    <div class="etiqueta-section">
+      <div class="etiqueta-label">Destinatário</div>
+      <div class="etiqueta-value" id="et-nome">-</div>
+      <div class="etiqueta-value" id="et-endereco">-</div>
+      <div class="etiqueta-value" id="et-cep">-</div>
+      <div class="etiqueta-value" id="et-cidade">-</div>
+    </div>
+
+    <hr class="etiqueta-divider">
+
+    <div class="etiqueta-section">
+      <div class="etiqueta-label">Pedido</div>
+      <div class="etiqueta-value" id="et-pedido">-</div>
+      <div class="etiqueta-value">TrackingYou Tag+ — Rastreamento Veicular</div>
+      <div class="etiqueta-value">Peso estimado: 150g | Dimensões: 15x10x5cm</div>
+    </div>
+
+    <div class="etiqueta-barcode" id="et-barcode">||| || | |||| || |||</div>
+
+    <div style="display:flex;gap:1rem;margin-top:.5rem">
+      <div>
+        <div class="etiqueta-label">Serviço</div>
+        <div class="etiqueta-value" id="et-servico2">SEDEX</div>
+      </div>
+      <div>
+        <div class="etiqueta-label">Data</div>
+        <div class="etiqueta-value" id="et-data">-</div>
+      </div>
+      <div>
+        <div class="etiqueta-label">Valor declarado</div>
+        <div class="etiqueta-value" id="et-valor">-</div>
+      </div>
+    </div>
+
+    <div class="etiqueta-actions">
+      <button class="btn-print" onclick="window.print()">🖨️ Imprimir</button>
+      <div style="display:flex;flex-direction:column;gap:6px;flex:1">
+        <button class="btn-print" style="background:#1a56db" onclick="gerarEtiqueta(currentPedido,'sedex')">SEDEX</button>
+        <button class="btn-print" style="background:#555" onclick="gerarEtiqueta(currentPedido,'pac')">PAC</button>
+      </div>
+      <button class="btn-close-et" onclick="fecharEtiqueta()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const B='https://trackingyou-backend-production.up.railway.app';
+const CNPJ_AUTH='64.890.295/0001-00';
+const SENHA_AUTH='Bancoreal103';
+let currentPedido=null;
+let allPedidos=[];
+
+function login(){
+  const cnpj=document.getElementById('l-cnpj').value.trim();
+  const senha=document.getElementById('l-senha').value.trim();
+  if(cnpj===CNPJ_AUTH&&senha===SENHA_AUTH){
+    document.getElementById('login-wrap').style.display='none';
+    document.getElementById('admin-layout').style.display='block';
+    carregarDados();
+  }else{
+    document.getElementById('login-err').style.display='block';
+  }
+}
+
+function logout(){
+  document.getElementById('login-wrap').style.display='flex';
+  document.getElementById('admin-layout').style.display='none';
+}
+
+function showTab(t){
+  document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',['dashboard','pedidos','afiliados','comissoes','saques'][i]===t));
+  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='pedidos')carregarPedidos();
+  if(t==='afiliados')carregarAfiliados();
+  if(t==='comissoes')carregarComissoes();
+  if(t==='saques')carregarSaques();
+}
+
+function fmt(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',');}
+function fmtDate(d){return new Date(d).toLocaleDateString('pt-BR');}
+
+async function carregarDados(){
+  try{
+    const [vendas,usuarios,comissoes,saques]=await Promise.all([
+      fetch(B+'/api/admin/vendas').then(r=>r.json()).catch(()=>[]),
+      fetch(B+'/api/admin/usuarios').then(r=>r.json()).catch(()=>[]),
+      fetch(B+'/api/admin/comissoes?status=pendente').then(r=>r.json()).catch(()=>[]),
+      fetch(B+'/api/admin/saques').then(r=>r.json()).catch(()=>[]),
+    ]);
+
+    allPedidos=vendas;
+
+    const pagos=vendas.filter(v=>v.status==='pago');
+    const pendentes=vendas.filter(v=>v.status==='pendente');
+    const totalVendido=pagos.reduce((s,v)=>s+parseFloat(v.valor),0);
+    const totalComissoes=comissoes.reduce((s,c)=>s+parseFloat(c.valor),0);
+    const saquesPendentes=saques.filter(s=>s.status==='solicitado');
+
+    document.getElementById('d-total').textContent=fmt(totalVendido);
+    document.getElementById('d-pagos').textContent=pagos.length;
+    document.getElementById('d-pendentes').textContent=pendentes.length;
+    document.getElementById('d-comissoes').textContent=fmt(totalComissoes);
+    document.getElementById('d-afiliados').textContent=usuarios.length;
+    document.getElementById('d-saques').textContent=saquesPendentes.length;
+
+    // Últimas vendas
+    const tbody=document.getElementById('dash-vendas');
+    if(!vendas.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhuma venda ainda</td></tr>';return;}
+    tbody.innerHTML=vendas.slice(0,10).map(v=>'<tr>'
+      +'<td><div style="font-weight:600">'+v.comprador_nome+'</div><div style="font-size:.75rem;color:var(--muted)">'+v.comprador_email+'</div></td>'
+      +'<td style="font-weight:700;color:var(--blue-bright)">'+fmt(v.valor)+'</td>'
+      +'<td><span style="font-family:monospace;font-size:.78rem;background:var(--bg2);padding:2px 8px;border-radius:4px">'+v.vendedor_id+'</span></td>'
+      +'<td><span class="status-badge '+v.status+'">'+v.status+'</span></td>'
+      +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(v.data_venda)+'</td>'
+      +'<td><div class="btn-group"><button class="btn ghost" onclick="abrirEtiqueta('+JSON.stringify(v).replace(/"/g,"'")+')" title="Gerar etiqueta">📦</button></div></td>'
+      +'</tr>').join('');
+  }catch(e){console.error(e);}
+}
+
+async function carregarPedidos(){
+  const tbody=document.getElementById('tab-pedidos-body');
+  tbody.innerHTML='<tr><td colspan="8" class="loading-inline">Carregando...</td></tr>';
+  try{
+    const vendas=await fetch(B+'/api/admin/vendas').then(r=>r.json());
+    allPedidos=vendas;
+    renderPedidos(vendas);
+  }catch(e){tbody.innerHTML='<tr><td colspan="8" class="empty">Erro ao carregar</td></tr>';}
+}
+
+function renderPedidos(vendas){
+  const tbody=document.getElementById('tab-pedidos-body');
+  if(!vendas.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Nenhum pedido</td></tr>';return;}
+  tbody.innerHTML=vendas.map((v,i)=>'<tr>'
+    +'<td style="font-family:monospace;font-size:.75rem;color:var(--muted)">'+(i+1)+'</td>'
+    +'<td><div style="font-weight:600">'+v.comprador_nome+'</div></td>'
+    +'<td style="color:var(--muted);font-size:.8rem">'+v.comprador_email+'</td>'
+    +'<td style="font-weight:700;color:var(--blue-bright)">'+fmt(v.valor)+'</td>'
+    +'<td><span style="font-family:monospace;font-size:.78rem;background:var(--bg2);padding:2px 6px;border-radius:4px">'+v.vendedor_id+'</span></td>'
+    +'<td><span class="status-badge '+v.status+'">'+v.status+'</span></td>'
+    +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(v.data_venda)+'</td>'
+    +'<td><div class="btn-group"><button class="btn ghost" onclick="abrirEtiqueta('+JSON.stringify(v).replace(/"/g,"'")+')" title="Etiqueta">📦 Etiqueta</button></div></td>'
+    +'</tr>').join('');
+}
+
+function filtrarPedidos(q){
+  if(!q)return renderPedidos(allPedidos);
+  const f=allPedidos.filter(v=>(v.comprador_nome||'').toLowerCase().includes(q.toLowerCase())||(v.comprador_email||'').toLowerCase().includes(q.toLowerCase()));
+  renderPedidos(f);
+}
+
+async function carregarAfiliados(){
+  const tbody=document.getElementById('tab-afiliados-body');
+  tbody.innerHTML='<tr><td colspan="9" class="loading-inline">Carregando...</td></tr>';
+  try{
+    const usuarios=await fetch(B+'/api/admin/usuarios').then(r=>r.json());
+    if(!usuarios.length){tbody.innerHTML='<tr><td colspan="9" class="empty">Nenhum afiliado</td></tr>';return;}
+    tbody.innerHTML=usuarios.map(u=>'<tr>'
+      +'<td><span style="font-family:monospace;font-size:.78rem;background:var(--bg2);padding:2px 8px;border-radius:4px">'+u.id+'</span></td>'
+      +'<td style="font-weight:600">'+u.nome+'</td>'
+      +'<td style="color:var(--muted);font-size:.8rem">'+u.email+'</td>'
+      +'<td style="text-align:center"><span style="background:var(--blue-glow);color:var(--blue-bright);padding:2px 10px;border-radius:100px;font-size:.75rem;font-weight:700">'+u.nivel+'</span></td>'
+      +'<td style="font-family:monospace;font-size:.78rem;color:var(--muted)">'+(u.ref_id||'—')+'</td>'
+      +'<td style="text-align:center">'+(u.total_vendas||0)+'</td>'
+      +'<td style="color:var(--success);font-weight:600">'+fmt(u.total_comissoes||0)+'</td>'
+      +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(u.data_cadastro)+'</td>'
+      +'<td><a href="painel.html?id='+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a></td>'
+      +'</tr>').join('');
+  }catch(e){tbody.innerHTML='<tr><td colspan="9" class="empty">Erro ao carregar</td></tr>';}
+}
+
+async function carregarComissoes(){
+  const tbody=document.getElementById('tab-comissoes-body');
+  const status=document.getElementById('filtro-comissao').value;
+  tbody.innerHTML='<tr><td colspan="8" class="loading-inline">Carregando...</td></tr>';
+  try{
+    const comissoes=await fetch(B+'/api/admin/comissoes?status='+status).then(r=>r.json());
+    if(!comissoes.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Nenhuma comissao '+status+'</td></tr>';return;}
+    tbody.innerHTML=comissoes.map(c=>'<tr>'
+      +'<td><span style="font-family:monospace;font-size:.78rem;background:var(--bg2);padding:2px 8px;border-radius:4px">'+c.beneficiario_id+'</span></td>'
+      +'<td style="text-align:center">'+c.nivel+'</td>'
+      +'<td style="text-align:center;color:var(--muted)">'+c.percentual+'%</td>'
+      +'<td style="font-weight:700;color:var(--success)">'+fmt(c.valor)+'</td>'
+      +'<td style="font-family:monospace;font-size:.7rem;color:var(--muted)">'+c.venda_id.slice(0,8)+'...</td>'
+      +'<td><span class="status-badge '+c.status+'">'+c.status+'</span></td>'
+      +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(c.data_criacao)+'</td>'
+      +'<td>'+(status==='pendente'?'<button class="btn green" onclick="pagarComissao(''+c.id+'')">Marcar pago</button>':'—')+'</td>'
+      +'</tr>').join('');
+  }catch(e){tbody.innerHTML='<tr><td colspan="8" class="empty">Erro ao carregar</td></tr>';}
+}
+
+async function pagarComissao(id){
+  if(!confirm('Marcar esta comissao como paga?'))return;
+  try{
+    const r=await fetch(B+'/api/admin/comissao/'+id+'/pagar',{method:'POST'});
+    const d=await r.json();
+    if(d.ok)carregarComissoes();
+    else alert('Erro: '+d.error);
+  }catch(e){alert('Erro ao processar');}
+}
+
+async function carregarSaques(){
+  const tbody=document.getElementById('tab-saques-body');
+  tbody.innerHTML='<tr><td colspan="6" class="loading-inline">Carregando...</td></tr>';
+  try{
+    const saques=await fetch(B+'/api/admin/saques').then(r=>r.json());
+    if(!saques.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhuma solicitacao de saque</td></tr>';return;}
+    tbody.innerHTML=saques.map(s=>'<tr>'
+      +'<td><div style="font-weight:600">'+(s.usuarios?.nome||s.vendedor_id)+'</div><div style="font-size:.75rem;color:var(--muted)">'+(s.usuarios?.telefone||'')+'</div></td>'
+      +'<td style="font-weight:700;color:var(--success)">'+fmt(s.valor)+'</td>'
+      +'<td style="font-family:monospace;font-size:.8rem">'+s.pix_key+'</td>'
+      +'<td><span class="status-badge '+(s.status==='pago'?'pago':'solicitado')+'">'+s.status+'</span></td>'
+      +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(s.data_solicitacao)+'</td>'
+      +'<td><div class="btn-group">'
+      +(s.status==='solicitado'?'<button class="btn green" onclick="aprovarSaque(''+s.id+'')">Aprovar</button><button class="btn red" onclick="recusarSaque(''+s.id+'')">Recusar</button>':'—')
+      +'</div></td>'
+      +'</tr>').join('');
+  }catch(e){tbody.innerHTML='<tr><td colspan="6" class="empty">Erro ao carregar</td></tr>';}
+}
+
+async function aprovarSaque(id){
+  if(!confirm('Confirmar aprovacao do saque? Certifique-se de ter feito o PIX antes.'))return;
+  try{
+    const r=await fetch(B+'/api/admin/saque/'+id+'/aprovar',{method:'POST'});
+    const d=await r.json();
+    if(d.ok)carregarSaques();
+    else alert('Erro: '+d.error);
+  }catch(e){alert('Erro ao processar');}
+}
+
+async function recusarSaque(id){
+  if(!confirm('Recusar esta solicitacao de saque?'))return;
+  try{
+    const r=await fetch(B+'/api/admin/saque/'+id+'/recusar',{method:'POST'});
+    const d=await r.json();
+    if(d.ok)carregarSaques();
+    else alert('Erro: '+d.error);
+  }catch(e){alert('Erro ao processar');}
+}
+
+function abrirEtiqueta(pedido){
+  currentPedido=pedido;
+  gerarEtiqueta(pedido,'sedex');
+}
+
+function gerarEtiqueta(pedido,servico){
+  document.getElementById('etiqueta-modal').style.display='flex';
+  document.getElementById('et-servico').textContent=servico.toUpperCase();
+  document.getElementById('et-servico2').textContent=servico.toUpperCase();
+  document.getElementById('et-nome').textContent=pedido.comprador_nome||'—';
+  document.getElementById('et-pedido').textContent='Pedido #'+pedido.id.slice(0,8).toUpperCase();
+  document.getElementById('et-valor').textContent=fmt(pedido.valor);
+  document.getElementById('et-data').textContent=fmtDate(pedido.data_venda);
+
+  // Endereço — usa payment_id como referência se não tiver endereço
+  document.getElementById('et-endereco').textContent='Ver dados no pedido';
+  document.getElementById('et-cep').textContent='CEP: —';
+  document.getElementById('et-cidade').textContent='Cidade: —';
+
+  // Barcode simulado
+  const code=pedido.id.replace(/-/g,'').slice(0,20).toUpperCase();
+  document.getElementById('et-barcode').textContent=code;
+}
+
+function fecharEtiqueta(){
+  document.getElementById('etiqueta-modal').style.display='none';
+}
+
+carregarDados();
+</script>
+</body>
+</html>
