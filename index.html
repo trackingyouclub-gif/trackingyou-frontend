@@ -678,15 +678,9 @@ async function payCard(customerData, o) {
     throw new Error(errMsg);
   }
 
-  showFeedback('✅ Pagamento aprovado! Redirecionando para seu painel...','success');
+  showFeedback('✅ Pagamento aprovado! Abrindo seu painel...','success');
   document.getElementById('btn-checkout').disabled = true;
-  setTimeout(async()=>{
-    try{
-      const r=await fetch(BACKEND_URL+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cpfCnpj:customerData.cpfCnpj,senha:document.getElementById('f-senha').value})});
-      const d=await r.json();
-      if(d.ok){sessionStorage.setItem('ty_vendor_id',d.id);window.open('painel.html','_blank');}
-    }catch(e){}
-  },2000);
+  setTimeout(()=>{ window.open('painel.html','_blank'); },2000);
 }
 
 async function payPix(customerData, o) {
