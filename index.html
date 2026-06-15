@@ -188,6 +188,11 @@
   .asaas-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; opacity: 0.6; font-size: 0.75rem; }
 
   @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+@media(max-width:768px){
+  .product-single > div:first-child { display:none; }
+  div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns:1fr !important; }
+}
 </style>
 </head>
 <body>
