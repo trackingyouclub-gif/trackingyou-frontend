@@ -242,6 +242,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="fg"><label>Quantidade</label><input type="number" id="est-qty" placeholder="Ex: 50" min="1" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;width:100%"></div>
         <div class="fg"><label>Motivo</label><input type="text" id="est-motivo" placeholder="Ex: Compra fornecedor - NF 1234" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;width:100%"></div>
         <button class="btn" style="width:100%;padding:12px;font-size:.95rem;border-radius:var(--r)" onclick="adicionarEstoque()">+ Adicionar ao Estoque</button>
+<button class="btn red" style="width:100%;padding:12px;font-size:.95rem;border-radius:var(--r);margin-top:.75rem" onclick="deletarEstoque()">− Remover do Estoque</button>
         <div class="fb" id="fb-estoque" style="margin-top:1rem"></div>
       </div>
     </div>
@@ -341,7 +342,7 @@ function logout(){
 }
 
 function showTab(t){
-  setTimeout(()=>document.querySelector(".tab-content.active").scrollIntoView({behavior:"smooth",block:"start"}),100);
+  setTimeout(()=>{const el=document.querySelector('.tab-content.active');const y=el.getBoundingClientRect().top+window.pageYOffset-130;window.scrollTo({top:y,behavior:'smooth'});},100);
   document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',['dashboard','pedidos','afiliados','comissoes','saques','estoque'][i]===t));
   document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});
@@ -555,6 +556,21 @@ async function carregarEstoque(){
   }catch(e){console.error(e);}
 }
 
+async function deletarEstoque(){
+  const qty=parseInt(document.getElementById('est-qty').value);
+  const motivo=document.getElementById('est-motivo').value.trim();
+  const fb=document.getElementById('fb-estoque');
+  if(!qty||qty<=0){fb.textContent='Informe uma quantidade valida';fb.className='fb error';fb.style.display='block';return;}
+  try{
+    const r=await fetch(B+'/api/admin/estoque/saida',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade:qty,motivo:motivo||'Remoção manual'})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    fb.textContent='Estoque atualizado! Total: '+d.quantidade+' unidades';fb.className='fb success';fb.style.display='block';
+    document.getElementById('est-qty').value='';
+    document.getElementById('est-motivo').value='';
+    carregarEstoque();
+  }catch(e){fb.textContent='Erro: '+e.message;fb.className='fb error';fb.style.display='block';}
+}
 async function adicionarEstoque(){
   const qty=parseInt(document.getElementById('est-qty').value);
   const motivo=document.getElementById('est-motivo').value.trim();
