@@ -218,7 +218,7 @@
   <div class="stats-bar">
     <div class="stat-item"><div class="stat-num">+12k</div><div class="stat-label">Clientes ativos</div></div>
     <div class="stat-item"><div class="stat-num">99,8%</div><div class="stat-label">Uptime da rede</div></div>
-    <div class="stat-item"><div class="stat-num">6 meses</div><div class="stat-label">Bateria da tag</div></div>
+    <div class="stat-item"><div class="stat-num">2 anos</div><div class="stat-label">Bateria da tag</div></div>
     <div class="stat-item"><div class="stat-num">30s</div><div class="stat-label">Atualização GPS</div></div>
   </div>
 </section>
@@ -244,33 +244,15 @@
     <div class="section-eyebrow">Produtos</div>
     <h2 class="section-title">Escolha o kit ideal para você</h2>
     <p class="section-sub">Tags físicas compactas com GPS + Bluetooth. Sem contratos.</p>
-    <div class="product-single" style="max-width:800px;margin:3rem auto 0;background:var(--card);border:1px solid var(--blue-border);border-radius:var(--radius-lg);padding:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:center">
-  <div style="text-align:center">
-    <div style="width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1a2a4a,#05080f);border:1px solid var(--blue-border);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 0 60px rgba(59,130,246,0.15)">
-      <span style="font-size:4rem">📍</span>
-    </div>
-    <div style="font-size:0.75rem;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">TrackingYou Tag+</div>
-  </div>
-  <div>
-    <div class="product-badge">Mais vendido</div>
-    <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem">Tag Rastreadora Universal</h3>
-    <p style="font-size:0.9rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Rastreamento preciso para veículos, família e pets. Discreta, resistente e com bateria de até 2 anos.</p>
-    <ul class="product-features">
-      <li>GPS em tempo real (30s)</li>
-      <li>Bateria até 2 anos</li>
-      <li>Resistente à água (IP67)</li>
-      <li>Cerca virtual com alerta</li>
-      <li>Histórico de 90 dias</li>
-      <li>App gratuito iOS e Android</li>
-      <li>3 meses de plataforma inclusa</li>
-    </ul>
-    <div class="product-price">
-      <div class="price-val">R$ 299,90</div>
-      <div class="price-desc">por tag · sem mensalidade nos primeiros 3 meses</div>
-    </div>
-    <a href="#checkout" class="btn-product">Comprar agora →</a>
-  </div>
-</div>
+    <div class="products-grid">
+      <div class="product-card">
+        <span class="product-icon">🚗</span>
+        <h3>Tag Veicular</h3>
+        <p class="desc">Rastreamento preciso para carros, motos e qualquer veículo.</p>
+        <ul class="product-features">
+          <li>GPS em tempo real (30s)</li><li>Histórico de 90 dias</li><li>Alerta de saída de zona</li><li>Resistente à água (IP67)</li><li>Bateria até 2 anos</li>
+        </ul>
+        <div class="product-price"><div class="price-val">R$ 197</div><div class="price-desc">por tag · sem mensalidade nos primeiros 3 meses</div></div>
         <a href="#checkout" class="btn-product" onclick="selectProduct('veicular')">Comprar Tag Veicular</a>
       </div>
       <div class="product-card featured">
@@ -327,9 +309,9 @@
           <div class="order-selector">
             <label>Produto</label>
             <select class="qty-select" id="product-select" onchange="updateOrder()">
-              <option </option>
-              <option </option>
-              <option </option>
+              <option value="197" data-name="Tag Veicular" data-key="veicular">Tag Veicular — R$ 197</option>
+              <option value="229" data-name="Tag Família" data-key="familia" selected>Tag Família — R$ 229</option>
+              <option value="349" data-name="Kit Completo" data-key="kit">Kit Completo — R$ 349</option>
             </select>
           </div>
           <div class="order-selector">
@@ -352,7 +334,7 @@
       <!-- FORMULÁRIO -->
       <div class="checkout-form">
 
-        <div class="form-section-title">Dados pessoais</div>
+        <button type="button" onclick="fillTestData()" style="width:100%;background:rgba(59,130,246,0.15);border:1px dashed rgba(59,130,246,0.4);color:#60a5fa;border-radius:8px;padding:10px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-bottom:1rem;">🧪 Preencher dados de teste</button><div class="form-section-title">Dados pessoais</div>
         <div class="form-row">
           <div class="form-group"><label>Nome</label><input type="text" id="f-nome" placeholder="Seu nome"></div>
           <div class="form-group"><label>Sobrenome</label><input type="text" id="f-sobrenome" placeholder="Sobrenome"></div>
@@ -360,7 +342,7 @@
         <div class="form-group"><label>E-mail</label><input type="email" id="f-email" placeholder="seuemail@exemplo.com"></div>
         <div class="form-row">
           <div class="form-group"><label>CPF</label><input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this)"></div>
-          <div class="form-group"><label>Telefone</label><input type="text" id="f-tel" placeholder="(11) 99999-9999" maxlength="15" oninput="maskPhone(this)"></div>
+          <div class="form-group"><label>Telefone</label><input type="text" id="f-tel" placeholder="(11) 98765-4321" maxlength="15" oninput="maskPhone(this)"></div>
         </div>
 
         <div class="form-section-title" style="margin-top:1.25rem;">Endereço de entrega</div>
@@ -464,7 +446,7 @@
     <div class="faq-list">
       <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Preciso pagar mensalidade depois? <span class="faq-chevron">▼</span></div><div class="faq-a">Os primeiros 3 meses de plataforma são gratuitos. Após isso, plano básico gratuito (atualização a cada 5 min) ou premium por R$ 19,90/mês.</div></div>
       <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">A tag funciona em todo o Brasil? <span class="faq-chevron">▼</span></div><div class="faq-a">Sim. Opera via rede 4G nacional e Bluetooth em qualquer lugar com sinal de celular.</div></div>
-      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Quanto tempo leva a entrega? <span class="faq-chevron">▼</span></div><div class="faq-a">3 a 7 dias úteis para todo o Brasil, com frete grátis. Código de rastreamento enviado por e-mail.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Quanto tempo leva a entrega? <span class="faq-chevron">▼</span></div><div class="faq-a">3 a 7 dias úteis para todo o Brasil, . Código de rastreamento enviado por e-mail.</div></div>
       <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">E se eu não gostar? <span class="faq-chevron">▼</span></div><div class="faq-a">30 dias de garantia incondicional. Reembolso de 100% sem perguntas.</div></div>
       <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Como funciona o pagamento pelo Asaas? <span class="faq-chevron">▼</span></div><div class="faq-a">O Asaas é uma instituição de pagamento regulada pelo Banco Central do Brasil e certificada PCI-DSS. Seus dados de cartão são transmitidos de forma segura e nunca armazenados em nossos servidores.</div></div>
     </div>
@@ -605,7 +587,7 @@ function getFormData() {
 function validate(f) {
   if (!f.nome) return 'Informe seu nome';
   if (!f.email || !f.email.includes('@')) return 'Informe um e-mail válido';
-  if (!f.cpf || f.cpf.replace(/\D/g,'').length !== 11) return 'CPF inválido';
+   if (!f.cpf || (f.cpf.replace(/\D/g,'').length !== 11 && f.cpf.replace(/\D/g,'').length !== 14)) return 'CPF/CNPJ inválido';
   if (!f.tel) return 'Informe o telefone';
   if (!f.cep || f.cep.replace(/\D/g,'').length !== 8) return 'CEP inválido';
   if (!f.rua) return 'Informe o endereço';
@@ -757,21 +739,7 @@ async function getClientIP() {
 }
 
 // ─── FAQ ────────────────────────────────────
-
-async function carregarEstoqueLoja(){
-  try{
-    const r=await fetch('https://trackingyou-backend-production.up.railway.app/api/estoque');
-    const d=await r.json();
-    const q=d.estoque?d.estoque.quantidade:0;
-    const badge=document.getElementById('estoque-badge');
-    if(!badge)return;
-    if(q===0){badge.textContent='Fora de estoque';badge.style.background='rgba(239,68,68,0.12)';badge.style.borderColor='rgba(239,68,68,0.25)';badge.style.color='#fca5a5';}
-    else if(q<=5){badge.textContent='Ultimas '+q+' unidades!';badge.style.background='rgba(245,158,11,0.12)';badge.style.borderColor='rgba(245,158,11,0.25)';badge.style.color='#fcd34d';}
-    else{badge.textContent=q+' unidades disponiveis';}
-  }catch(e){const b=document.getElementById('estoque-badge');if(b)b.style.display='none';}
-}
-document.addEventListener('DOMContentLoaded',carregarEstoqueLoja);
-
+function fillTestData(){document.getElementById("f-nome").value="Flavio";document.getElementById("f-sobrenome").value="Pereira Matesz";document.getElementById("f-email").value="fmatesz@gmail.com";document.getElementById("f-cpf").value="315.212.898-32";document.getElementById("f-tel").value="(11) 98765-4321";document.getElementById("f-cep").value="03732-160";document.getElementById("f-estado").value="SP";document.getElementById("f-rua").value="Avenida Paulista";document.getElementById("f-num").value="1000";document.getElementById("f-comp").value="Apto 42";document.getElementById("f-cidade").value="São Paulo";document.getElementById("f-bairro").value="Bela Vista";document.getElementById("cc-num").value="5162 3062 1937 8829";document.getElementById("cc-name").value="APROVADO TESTE";document.getElementById("cc-exp").value="05/28";document.getElementById("cc-cvv").value="318";}
 function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
 </script>
 </body>
