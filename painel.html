@@ -309,7 +309,12 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
       <button class="btn big" onclick="comprar()">Comprar agora</button>
     </div>
 
+    
     <div class="card">
+      <h2>Meus Pedidos</h2>
+      <div id="pedidos-list"><div class="empty">Carregando pedidos...</div></div>
+    </div>
+<div class="card">
       <h2>Sua Rede de Partneres</h2>
       <div class="tree-wrap" id="tree"><div class="empty">Nenhum indicado ainda. Compartilhe seu link!</div></div>
     </div>
@@ -363,6 +368,7 @@ async function carregarPainelLogado(){
     VD=await r.json();
     render(VD);
     loadTree();
+    carregarPedidos();
   }catch(e){
     sessionStorage.removeItem('ty_vendor_id');
     document.getElementById('loading').style.display='none';
@@ -621,6 +627,41 @@ function copiarLink(){
     const b=document.querySelector('.btn');b.textContent='Copiado!';
     setTimeout(()=>b.textContent='Copiar link',2000);
   });
+}
+
+
+async function carregarPedidos(){
+  const cont = document.getElementById('pedidos-list');
+  try{
+    const r = await fetch(B+'/api/partner/'+ID+'/pedidos');
+    const pedidos = await r.json();
+    if(!pedidos || !pedidos.length){
+      cont.innerHTML = '<div class="empty">Nenhum pedido encontrado</div>';
+      return;
+    }
+    cont.innerHTML = pedidos.map(p => {
+      const statusClass = p.status === 'pago' ? 'pago' : (p.status === 'cancelado' ? 'pendente' : 'pendente');
+      const statusLabel = p.status === 'pago' ? 'Pago' : (p.status === 'cancelado' ? 'Cancelado' : 'Pendente');
+      const btnPagar = p.status === 'pendente' ? '<button class="btn green" style="margin-left:8px" onclick="abrirPagamentoPendente(\''+p.id+'\','+p.valor+')">Finalizar pagamento</button>' : '';
+      return '<div class="ci"><div><div style="font-weight:600">'+fmt(p.valor)+'</div><div class="cin">'+new Date(p.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span>'+btnPagar+'</div></div>';
+    }).join('');
+  }catch(e){
+    cont.innerHTML = '<div class="empty">Erro ao carregar pedidos</div>';
+  }
+}
+
+function abrirPagamentoPendente(vendaId, valor){
+  document.getElementById('m-qty').value = 1;
+  document.getElementById('m-total').textContent = f(valor);
+  document.getElementById('m-btn-total').textContent = f(valor);
+  document.getElementById('m-vendaId').value = vendaId;
+  const v = VD.vendedor;
+  document.getElementById('m-nome').value = v.nome.split(' ')[0] || '';
+  document.getElementById('m-sobrenome').value = v.nome.split(' ').slice(1).join(' ') || '';
+  document.getElementById('m-email').value = v.email || '';
+  document.getElementById('m-cpf').value = v.cpf_cnpj || '';
+  document.getElementById('m-tel').value = v.telefone ? '('+v.telefone.slice(0,2)+') '+v.telefone.slice(2) : '';
+  document.getElementById('modal').style.display = 'flex';
 }
 
 init();
