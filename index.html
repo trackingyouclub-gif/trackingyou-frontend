@@ -147,7 +147,6 @@
   .pix-info { background: rgba(34,211,238,0.07); border: 1px solid rgba(34,211,238,0.2); border-radius: 10px; padding: 1.25rem; text-align: center; }
   .pix-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
   .pix-info p { font-size: 0.875rem; color: var(--muted); }
-  .pix-discount { display: inline-block; background: rgba(16,185,129,0.15); color: #6ee7b7; font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; margin-top: 8px; }
 
   /* QR CODE result */
   .pix-result { text-align: center; margin-top: 1rem; }
@@ -372,7 +371,9 @@
           </div>
           <div class="order-item"><span class="item-name" id="order-product-name">TrackingYou TAG+YOU</span><span class="item-price" id="order-unit-price">R$ 299,90</span></div>
           <div class="order-item" id="discount-row" style="display:none;"><span class="item-name" style="color:#6ee7b7;">Desconto volume</span><span class="item-price" id="discount-val" style="color:#6ee7b7;"></span></div>
-          <div class="order-item"><span class="item-name">Frete</span><span class="item-price" style="color:#6ee7b7;"><span style="color:var(--muted);font-size:.85rem">Calculado no envio</span></div>
+          <div class="order-item" id="frete-row" style="display:none"><span class="item-name">Frete</span><span class="item-price" id="frete-preco">R$ 0,00</span></div>
+          <div class="order-item" id="frete-pendente-row"><span class="item-name"><span style="color:var(--muted);font-size:.85rem">Frete: informe o CEP</span></span></div>
+          <div class="order-item" id="taxa-row" style="display:none"><span class="item-name">Taxa de processamento</span><span class="item-price" id="taxa-preco">R$ 0,00</span></div>
           <div class="order-total"><span class="total-label">Total</span><span class="total-val" id="order-total">R$ 299,90</span></div>
           <div class="guarantee">🔒 Garantia de 30 dias ou seu dinheiro de volta.</div>
         </div>
@@ -392,6 +393,18 @@
           <div class="form-group"><label>Telefone</label><input type="text" id="f-tel" placeholder="(11) 99999-9999" maxlength="15" oninput="maskPhone(this)"></div>
         </div>
 
+        <div class="form-section-title" style="margin-top:1.25rem;">Entrega ou retirada</div>
+        <div class="payment-tabs" style="margin-bottom:1rem">
+          <div class="pay-tab active" id="tab-entrega" onclick="switchEntrega('entrega')">📦 Receber em casa</div>
+          <div class="pay-tab" id="tab-retirada" onclick="switchEntrega('retirada')">🏬 Retirar no local</div>
+        </div>
+
+        <div id="retirada-info" style="display:none;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem">
+          <p style="font-size:0.875rem;color:#6ee7b7;font-weight:600;margin-bottom:4px">✅ Sem custo de frete</p>
+          <p style="font-size:0.85rem;color:var(--muted)">Retire seu pedido em: Rua Rogério Armelim Guanaes, 360 — São Paulo/SP. Combinaremos o horário por e-mail após a confirmação do pagamento.</p>
+        </div>
+
+        <div id="entrega-fields">
         <div class="form-section-title" style="margin-top:1.25rem;">Endereço de entrega</div>
         <div class="form-row">
           <div class="form-group"><label>CEP</label><input type="text" id="f-cep" placeholder="00000-000" maxlength="9" oninput="maskCEP(this);initFrete(this.value)">
@@ -415,6 +428,7 @@
           <div class="form-group"><label>Cidade</label><input type="text" id="f-cidade" placeholder="Sua cidade"></div>
           <div class="form-group"><label>Bairro</label><input type="text" id="f-bairro" placeholder="Bairro"></div>
         </div>
+        </div>
 
         <div class="form-section-title" style="margin-top:1.25rem;">Forma de pagamento</div>
 
@@ -434,7 +448,7 @@
             <div class="form-group"><label>CVV</label><input type="text" id="cc-cvv" placeholder="000" maxlength="4"></div>
           </div>
           <div class="form-group"><label>Parcelas</label>
-            <select id="cc-parcelas">
+            <select id="cc-parcelas" onchange="updateOrder()">
               <option value="1">1x sem juros</option>
               <option value="2">2x sem juros</option>
               <option value="3">3x sem juros</option>
@@ -449,7 +463,6 @@
           <div class="pix-info">
             <div class="pix-icon">⚡</div>
             <p>Após confirmar, um QR Code PIX será gerado. Aprovação instantânea.</p>
-            <div class="pix-discount">🎁 5% de desconto no PIX</div>
           </div>
           <div class="pix-result" id="pix-result" style="display:none;">
             <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.75rem;">Escaneie o QR Code ou use o Pix Copia e Cola:</p>
@@ -506,6 +519,8 @@
 // ─── ESTADO GLOBAL ───────────────────────────
 let currentTab = 'card';
 let pixCopiaCola = '';
+let tipoEntrega = 'entrega'; // 'entrega' ou 'retirada'
+let freteValor = 0;
 
 // Captura o vendedor de referência pela URL (?ref=ID). Se não houver, usa FL01 (vendedor raiz)
 // como padrão, garantindo que toda venda feita pela URL principal seja atribuída a ele.
@@ -517,6 +532,32 @@ const products = {
   kit:      { label: 'Kit Completo', price: 349 },
 };
 const discounts = { 1: 0 };
+
+// ─── TAXAS ASAAS (repassadas integralmente ao cliente) ───────
+// IMPORTANTE: valores conforme tabela de taxas da conta Asaas em uso.
+// O PIX está com taxa estimada (R$ 1,99 fixo) até confirmação exata na conta —
+// ajustar TAXA_PIX_FIXA abaixo quando o valor real for confirmado.
+const TAXA_PIX_FIXA = 1.99;
+const TAXA_BOLETO_FIXA = 1.99;
+// Cartão: taxa base do Asaas + taxa de antecipação automática (ativada nesta conta)
+const TAXA_CARTAO = {
+  1:  { percentual: 2.99 + 1.15, fixa: 0.49 },  // à vista, com antecipação
+  2:  { percentual: 3.49 + 1.60, fixa: 0.49 },  // 2 a 6x
+  3:  { percentual: 3.49 + 1.60, fixa: 0.49 },
+  6:  { percentual: 3.49 + 1.60, fixa: 0.49 },
+  12: { percentual: 3.99 + 1.60, fixa: 0.49 },  // 7 a 12x
+};
+
+// Calcula o valor a cobrar do cliente para que o valor líquido (após taxa) seja `liquido`.
+function grossUp(liquido, percentual, fixa) {
+  return (liquido + fixa) / (1 - percentual / 100);
+}
+
+function getTaxaCartao(parcelas) {
+  if (parcelas <= 1) return TAXA_CARTAO[1];
+  if (parcelas <= 6) return TAXA_CARTAO[2];
+  return TAXA_CARTAO[12];
+}
 
 // ─── ORDER SUMMARY ───────────────────────────
 function formatBRL(v) {
@@ -530,9 +571,27 @@ function getOrderTotal() {
   const disc = discounts[qty] || 0;
   const subtotal = price * qty;
   const discVal = subtotal * disc;
-  const total = subtotal - discVal;
-  // PIX tem 5% desconto adicional
-  return { price, qty, disc, subtotal, discVal, total, productName: sel.options[sel.selectedIndex].dataset.name };
+  const frete = tipoEntrega === 'retirada' ? 0 : freteValor;
+  const liquidoDesejado = subtotal - discVal + frete;
+
+  // Aplica gross-up de acordo com a forma de pagamento, para que o valor
+  // líquido recebido na conta Asaas seja sempre o preço cheio do produto + frete.
+  let total = liquidoDesejado;
+  let taxaPaga = 0;
+  if (currentTab === 'pix') {
+    total = liquidoDesejado + TAXA_PIX_FIXA;
+    taxaPaga = TAXA_PIX_FIXA;
+  } else if (currentTab === 'boleto') {
+    total = liquidoDesejado + TAXA_BOLETO_FIXA;
+    taxaPaga = TAXA_BOLETO_FIXA;
+  } else if (currentTab === 'card') {
+    const parcelas = parseInt(document.getElementById('cc-parcelas')?.value || '1');
+    const t = getTaxaCartao(parcelas);
+    total = grossUp(liquidoDesejado, t.percentual, t.fixa);
+    taxaPaga = total - liquidoDesejado;
+  }
+
+  return { price, qty, disc, subtotal, discVal, frete, liquidoDesejado, taxaPaga, total, productName: sel.options[sel.selectedIndex].dataset.name };
 }
 
 function updateOrder() {
@@ -545,9 +604,44 @@ function updateOrder() {
   } else {
     document.getElementById('discount-row').style.display = 'none';
   }
-  const displayTotal = currentTab === 'pix' ? o.total * 0.95 : o.total;
+
+  const freteRow = document.getElementById('frete-row');
+  const fretePendenteRow = document.getElementById('frete-pendente-row');
+  if (tipoEntrega === 'retirada') {
+    freteRow.style.display = 'flex';
+    document.getElementById('frete-preco').textContent = 'Grátis (retirada)';
+    document.getElementById('frete-preco').style.color = '#6ee7b7';
+    fretePendenteRow.style.display = 'none';
+  } else if (freteValor > 0) {
+    freteRow.style.display = 'flex';
+    document.getElementById('frete-preco').textContent = formatBRL(freteValor);
+    document.getElementById('frete-preco').style.color = '';
+    fretePendenteRow.style.display = 'none';
+  } else {
+    freteRow.style.display = 'none';
+    fretePendenteRow.style.display = 'flex';
+  }
+
+  const displayTotal = o.total;
   document.getElementById('order-total').textContent = formatBRL(displayTotal);
   document.getElementById('btn-total').textContent = formatBRL(displayTotal);
+
+  const taxaRow = document.getElementById('taxa-row');
+  if (o.taxaPaga > 0.001) {
+    taxaRow.style.display = 'flex';
+    document.getElementById('taxa-preco').textContent = formatBRL(o.taxaPaga);
+  } else {
+    taxaRow.style.display = 'none';
+  }
+}
+
+function switchEntrega(tipo) {
+  tipoEntrega = tipo;
+  document.getElementById('tab-entrega').classList.toggle('active', tipo === 'entrega');
+  document.getElementById('tab-retirada').classList.toggle('active', tipo === 'retirada');
+  document.getElementById('entrega-fields').style.display = tipo === 'retirada' ? 'none' : 'block';
+  document.getElementById('retirada-info').style.display = tipo === 'retirada' ? 'block' : 'none';
+  updateOrder();
 }
 
 function selectProduct(key) {
@@ -631,10 +725,12 @@ function validate(f) {
   if (!f.email || !f.email.includes('@')) return 'Informe um e-mail válido';
   if (!f.cpf || f.cpf.replace(/\D/g,'').length !== 11) return 'CPF inválido';
   if (!f.tel) return 'Informe o telefone';
-  if (!f.cep || f.cep.replace(/\D/g,'').length !== 8) return 'CEP inválido';
-  if (!f.rua) return 'Informe o endereço';
-  if (!f.num) return 'Informe o número';
-  if (!f.cidade) return 'Informe a cidade';
+  if (tipoEntrega === 'entrega') {
+    if (!f.cep || f.cep.replace(/\D/g,'').length !== 8) return 'CEP inválido';
+    if (!f.rua) return 'Informe o endereço';
+    if (!f.num) return 'Informe o número';
+    if (!f.cidade) return 'Informe a cidade';
+  }
   const senha = document.getElementById('f-senha').value;
   const senha2 = document.getElementById('f-senha2').value;
   if (!senha || senha.length < 6) return 'Senha deve ter pelo menos 6 caracteres';
@@ -662,18 +758,19 @@ async function handleCheckout() {
   btn.disabled = true;
   showFeedback('⏳ Processando seu pedido...', 'loading');
 
-  const senha = document.getElementById('f-senha').value;
-    const customerData = {
+  const customerData = {
     name: (f.nome + ' ' + f.sobrenome).trim(),
     email: f.email,
     cpfCnpj: f.cpf,
     phone: f.tel,
-    postalCode: f.cep,
-    address: f.rua,
-    addressNumber: f.num,
-    addressComplement: f.comp || null,
-    city: f.cidade,
-    state: f.estado,
+    // Na retirada não coletamos endereço do cliente; usamos o endereço da loja
+    // apenas para satisfazer o cadastro de cliente exigido pelo Asaas.
+    postalCode: tipoEntrega === 'retirada' ? '03732160' : f.cep,
+    address: tipoEntrega === 'retirada' ? 'Rua Rogério Armelim Guanaes' : f.rua,
+    addressNumber: tipoEntrega === 'retirada' ? '360' : f.num,
+    addressComplement: tipoEntrega === 'retirada' ? null : (f.comp || null),
+    city: tipoEntrega === 'retirada' ? 'São Paulo' : f.cidade,
+    state: tipoEntrega === 'retirada' ? 'SP' : f.estado,
   };
 
   try {
@@ -728,7 +825,8 @@ async function payCard(customerData, o) {
 }
 
 async function payPix(customerData, o) {
-  const pixTotal = parseFloat((o.total * 0.95).toFixed(2));
+  const senha = document.getElementById('f-senha').value;
+  const pixTotal = parseFloat(o.total.toFixed(2));
 
   const res = await fetch(BACKEND_URL + '/api/pay/pix', {
     method: 'POST',
@@ -751,6 +849,7 @@ async function payPix(customerData, o) {
 }
 
 async function payBoleto(customerData, o) {
+  const senha = document.getElementById('f-senha').value;
   const res = await fetch(BACKEND_URL + '/api/pay/boleto', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -817,7 +916,8 @@ async function buscarFrete(cep) {
   load.style.display = 'block';
   ops.innerHTML = '';
   _freteSel = null;
-  atualizaFreteResumo(0);
+  freteValor = 0;
+  updateOrder();
   try {
     const r = await fetch(BACKEND_URL + '/api/frete/calcular', {
       method: 'POST',
@@ -846,19 +946,8 @@ async function buscarFrete(cep) {
 
 function escolherFrete(opcoes, idx) {
   _freteSel = opcoes[idx];
-  atualizaFreteResumo(_freteSel.preco);
-}
-
-function atualizaFreteResumo(valor) {
-  const row = document.getElementById('frete-row');
-  const preco = document.getElementById('frete-preco');
-  if (!row || !preco) return;
-  if (valor > 0) {
-    row.style.display = 'flex';
-    preco.textContent = 'R$ ' + valor.toFixed(2).replace('.', ',');
-  } else {
-    row.style.display = 'none';
-  }
+  freteValor = _freteSel.preco;
+  updateOrder();
 }
 </script>
 
