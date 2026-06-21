@@ -184,6 +184,7 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
     </div>
 
     <input type="hidden" id="m-qty" value="1">
+    <input type="hidden" id="m-vendaId" value="">
 
     <div class="fsec">Dados pessoais</div>
     <div class="frow">
@@ -816,7 +817,7 @@ async function carregarPedidos(){
       const statusClass = p.status === 'pago' ? 'pago' : (p.status === 'cancelado' ? 'pendente' : 'pendente');
       const statusLabel = p.status === 'pago' ? 'Pago' : (p.status === 'cancelado' ? 'Cancelado' : 'Pendente');
       const btnPagar = p.status === 'pendente' ? '<button class="btn green" style="margin-left:8px" onclick="abrirPagamentoPendente(\''+p.id+'\','+p.valor+')">Finalizar pagamento</button>' : '';
-      return '<div class="ci"><div><div style="font-weight:600">'+fmt(p.valor)+'</div><div class="cin">'+new Date(p.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span>'+btnPagar+'</div></div>';
+      return '<div class="ci"><div><div style="font-weight:600">'+f(p.valor)+'</div><div class="cin">'+new Date(p.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span>'+btnPagar+'</div></div>';
     }).join('');
   }catch(e){
     cont.innerHTML = '<div class="empty">Erro ao carregar pedidos</div>';
