@@ -520,8 +520,18 @@ function renderVendasGeradas(vendas){
   cont.innerHTML=vendas.map(v=>{
     const statusClass=v.status==='pago'?'pago':(v.status==='cancelado'?'pendente':'pendente');
     const statusLabel=v.status==='pago'?'Pago':(v.status==='cancelado'?'Cancelado':'Pendente');
-    return '<div class="ci"><div><div style="font-weight:600">'+(v.comprador_nome||'Comprador')+'</div><div class="cin">'+mascararEmail(v.comprador_email)+' &middot; '+new Date(v.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span><span class="civ">'+f(v.valor)+'</span></div></div>';
+    const btnCobrar=(v.status==='pendente'&&v.comprador_telefone)?'<button class="btn green" style="margin-left:8px;font-size:.75rem" onclick="cobrarViaWhatsApp(\''+(v.comprador_nome||'').replace(/'/g,"\\'")+'\',\''+v.comprador_telefone+'\','+v.valor+')">📲 Cobrar</button>':'';
+    return '<div class="ci"><div><div style="font-weight:600">'+(v.comprador_nome||'Comprador')+'</div><div class="cin">'+mascararEmail(v.comprador_email)+' &middot; '+new Date(v.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span><span class="civ">'+f(v.valor)+'</span>'+btnCobrar+'</div></div>';
   }).join('');
+}
+
+function cobrarViaWhatsApp(nome, telefone, valor){
+  const tel=(telefone||'').replace(/\D/g,'');
+  if(!tel){alert('Telefone do comprador nao disponivel.');return;}
+  const telComCodigo=tel.length<=11?'55'+tel:tel;
+  const primeiroNome=(nome||'').split(' ')[0]||'';
+  const msg='Oi'+(primeiroNome?' '+primeiroNome:'')+'! 😊 Vi que seu pedido da TrackingYou TAG+YOU no valor de '+f(valor)+' ainda esta pendente de pagamento. Posso te ajudar a finalizar? Qualquer duvida, estou por aqui!';
+  window.open('https://wa.me/'+telComCodigo+'?text='+encodeURIComponent(msg),'_blank');
 }
 
 let REDE_DATA = null;
