@@ -142,7 +142,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="tab" onclick="showTab('pedidos')">Pedidos</div>
     <div class="tab" onclick="showTab('afiliados')">Afiliados</div>
     <div class="tab" onclick="showTab('comissoes')">Comissões</div>
-    <div class="tab" onclick="showTab('saques')">Saques</div><div class="tab" onclick="showTab('estoque')">Estoque</div>
+    <div class="tab" onclick="showTab('saques')">Saques</div><div class="tab" onclick="showTab('estoque')">Estoque</div><div class="tab" onclick="showTab('movimentacoes')">Movimentações</div>
   </div>
 
   <!-- DASHBOARD -->
@@ -224,9 +224,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
       </table>
     </div>
   </div>
-</div>
 
-<!-- ESTOQUE -->
+  <!-- ESTOQUE -->
   <div class="tab-content" id="tab-estoque">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
       <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700">Controle de Estoque</h2>
@@ -254,6 +253,47 @@ tr:hover td{background:rgba(255,255,255,.02)}
       </table>
     </div>
   </div>
+
+  <!-- MOVIMENTAÇÕES -->
+  <div class="tab-content" id="tab-movimentacoes">
+    <div style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700">Movimentações de Saldo entre Membros</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-top:.25rem">Histórico completo de transferências internas, saques e quitações de venda com saldo.</p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card blue"><div class="sl">Transferências (total)</div><div class="sv blue" id="mov-total-transf">R$ 0,00</div></div>
+      <div class="stat-card green"><div class="sl">Taxas de transferência arrecadadas</div><div class="sv green" id="mov-taxa-transf">R$ 0,00</div></div>
+      <div class="stat-card warn"><div class="sl">Taxas de saque arrecadadas</div><div class="sv warn" id="mov-taxa-saque">R$ 0,00</div></div>
+      <div class="stat-card red"><div class="sl">Vendas quitadas com saldo</div><div class="sv red" id="mov-total-quitadas">R$ 0,00</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><h2>Transferências entre Membros</h2></div>
+      <table>
+        <thead><tr><th>De</th><th>Para</th><th>Valor enviado</th><th>Taxa</th><th>Total debitado</th><th>Data</th></tr></thead>
+        <tbody id="mov-transferencias-body"><tr><td colspan="6" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><h2>Saques (Manuais e Automáticos)</h2></div>
+      <table>
+        <thead><tr><th>Vendedor</th><th>Valor bruto</th><th>Taxa</th><th>Valor líquido</th><th>Chave PIX</th><th>Status</th><th>Data</th></tr></thead>
+        <tbody id="mov-saques-body"><tr><td colspan="7" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><h2>Vendas Quitadas com Saldo Próprio</h2></div>
+      <table>
+        <thead><tr><th>Vendedor</th><th>Comprador</th><th>Valor</th><th>Data</th></tr></thead>
+        <tbody id="mov-quitadas-body"><tr><td colspan="4" class="loading-inline">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ETIQUETA -->
 <div class="etiqueta-modal" id="etiqueta-modal">
   <div class="etiqueta-box" id="etiqueta-content">
@@ -343,14 +383,15 @@ function logout(){
 
 function showTab(t){
   window.scrollTo({top:0,behavior:'instant'});
-  document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',['dashboard','pedidos','afiliados','comissoes','saques','estoque'][i]===t));
+  document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',['dashboard','pedidos','afiliados','comissoes','saques','estoque','movimentacoes'][i]===t));
   document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});
   if(t==='pedidos')carregarPedidos();
   if(t==='afiliados')carregarAfiliados();
   if(t==='comissoes')carregarComissoes();
   if(t==='saques')carregarSaques();
-
+  if(t==='estoque')carregarEstoque();
+  if(t==='movimentacoes')carregarMovimentacoes();
 }
 
 function fmt(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',');}
@@ -440,7 +481,7 @@ async function carregarAfiliados(){
       +'<td style="text-align:center">'+(u.total_vendas||0)+'</td>'
       +'<td style="color:var(--success);font-weight:600">'+fmt(u.total_comissoes||0)+'</td>'
       +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(u.data_cadastro)+'</td>'
-      +'<td><div class="btn-group"><a href="painel.html?id='+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a><button class="btn warn" onclick="editarVendedor(\''+u.id+'\',\''+u.email+'\')" style="font-size:.75rem">Editar</button></div></td>'+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a></td>'
+      +'<td><div class="btn-group"><a href="painel.html?id='+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a><button class="btn warn" onclick="editarVendedor(\''+u.id+'\',\''+u.email+'\')" style="font-size:.75rem">Editar</button></div></td>'
       +'</tr>').join('');
   }catch(e){tbody.innerHTML='<tr><td colspan="9" class="empty">Erro ao carregar</td></tr>';}
 }
@@ -460,7 +501,7 @@ async function carregarComissoes(){
       +'<td style="font-family:monospace;font-size:.7rem;color:var(--muted)">'+c.venda_id.slice(0,8)+'...</td>'
       +'<td><span class="status-badge '+c.status+'">'+c.status+'</span></td>'
       +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(c.data_criacao)+'</td>'
-      +'<td>'+(status==='pendente'?'<button class="btn green" onclick="pagarComissao(this.dataset.id)" data-id="+c.id+">Marcar pago</button>':'—')+'</td>'
+      +'<td>'+(status==='pendente'?'<button class="btn green" onclick="pagarComissao(\''+c.id+'\')">Marcar pago</button>':'—')+'</td>'
       +'</tr>').join('');
   }catch(e){tbody.innerHTML='<tr><td colspan="8" class="empty">Erro ao carregar</td></tr>';}
 }
@@ -488,7 +529,7 @@ async function carregarSaques(){
       +'<td><span class="status-badge '+(s.status==='pago'?'pago':'solicitado')+'">'+s.status+'</span></td>'
       +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(s.data_solicitacao)+'</td>'
       +'<td><div class="btn-group">'
-      +(s.status==='solicitado'?'<button class="btn green" onclick="aprovarSaque(this.dataset.id)">Aprovar</button><button class="btn red" onclick="recusarSaque(this.dataset.id)">Recusar</button>':'—')
+      +(s.status==='solicitado'?'<button class="btn green" onclick="aprovarSaque(\''+s.id+'\')">Aprovar</button><button class="btn red" onclick="recusarSaque(\''+s.id+'\')">Recusar</button>':'—')
       +'</div></td>'
       +'</tr>').join('');
   }catch(e){tbody.innerHTML='<tr><td colspan="6" class="empty">Erro ao carregar</td></tr>';}
@@ -556,6 +597,76 @@ async function carregarEstoque(){
   }catch(e){console.error(e);}
 }
 
+async function carregarMovimentacoes(){
+  try{
+    const [transferencias,saques,quitadas]=await Promise.all([
+      fetch(B+'/api/admin/transferencias').then(r=>r.json()).catch(()=>[]),
+      fetch(B+'/api/admin/saques').then(r=>r.json()).catch(()=>[]),
+      fetch(B+'/api/admin/vendas-quitadas').then(r=>r.json()).catch(()=>[]),
+    ]);
+
+    const totalTransf=transferencias.reduce((s,t)=>s+parseFloat(t.valor||0),0);
+    const taxaTransf=transferencias.reduce((s,t)=>s+parseFloat(t.taxa||0),0);
+    const taxaSaque=saques.reduce((s,sq)=>s+parseFloat(sq.taxa||0),0);
+    const totalQuitadas=quitadas.reduce((s,v)=>s+parseFloat(v.valor||0),0);
+
+    document.getElementById('mov-total-transf').textContent=fmt(totalTransf);
+    document.getElementById('mov-taxa-transf').textContent=fmt(taxaTransf);
+    document.getElementById('mov-taxa-saque').textContent=fmt(taxaSaque);
+    document.getElementById('mov-total-quitadas').textContent=fmt(totalQuitadas);
+
+    const tbodyTransf=document.getElementById('mov-transferencias-body');
+    if(!transferencias.length){
+      tbodyTransf.innerHTML='<tr><td colspan="6" class="empty">Nenhuma transferencia registrada</td></tr>';
+    }else{
+      tbodyTransf.innerHTML=transferencias.map(t=>{
+        const taxa=parseFloat(t.taxa||0);
+        const total=parseFloat(t.valor||0)+taxa;
+        return '<tr>'
+          +'<td><div style="font-weight:600">'+(t.remetente?.nome||t.remetente_id)+'</div><div style="font-size:.72rem;color:var(--muted);font-family:monospace">'+t.remetente_id+'</div></td>'
+          +'<td><div style="font-weight:600">'+(t.destinatario?.nome||t.destinatario_id)+'</div><div style="font-size:.72rem;color:var(--muted);font-family:monospace">'+t.destinatario_id+'</div></td>'
+          +'<td style="font-weight:700;color:var(--blue-bright)">'+fmt(t.valor)+'</td>'
+          +'<td style="color:var(--warning)">'+fmt(taxa)+'</td>'
+          +'<td style="font-weight:700">'+fmt(total)+'</td>'
+          +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(t.data_transferencia)+'</td>'
+          +'</tr>';
+      }).join('');
+    }
+
+    const tbodySaques=document.getElementById('mov-saques-body');
+    if(!saques.length){
+      tbodySaques.innerHTML='<tr><td colspan="7" class="empty">Nenhum saque registrado</td></tr>';
+    }else{
+      tbodySaques.innerHTML=saques.map(s=>{
+        const bruto=parseFloat(s.valor_bruto||s.valor||0);
+        const taxa=parseFloat(s.taxa||0);
+        const liquido=parseFloat(s.valor||0);
+        return '<tr>'
+          +'<td><div style="font-weight:600">'+(s.usuarios?.nome||s.vendedor_id)+'</div></td>'
+          +'<td>'+fmt(bruto)+'</td>'
+          +'<td style="color:var(--warning)">'+(taxa?fmt(taxa):'—')+'</td>'
+          +'<td style="font-weight:700;color:var(--success)">'+fmt(liquido)+'</td>'
+          +'<td style="font-family:monospace;font-size:.78rem">'+s.pix_key+'</td>'
+          +'<td><span class="status-badge '+(s.status==='pago'?'pago':'solicitado')+'">'+s.status+'</span></td>'
+          +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(s.data_solicitacao)+'</td>'
+          +'</tr>';
+      }).join('');
+    }
+
+    const tbodyQuitadas=document.getElementById('mov-quitadas-body');
+    if(!quitadas.length){
+      tbodyQuitadas.innerHTML='<tr><td colspan="4" class="empty">Nenhuma venda quitada com saldo</td></tr>';
+    }else{
+      tbodyQuitadas.innerHTML=quitadas.map(v=>'<tr>'
+        +'<td><span style="font-family:monospace;font-size:.78rem;background:var(--bg2);padding:2px 8px;border-radius:4px">'+v.vendedor_id+'</span></td>'
+        +'<td>'+(v.comprador_nome||'—')+'</td>'
+        +'<td style="font-weight:700;color:var(--blue-bright)">'+fmt(v.valor)+'</td>'
+        +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(v.data_venda)+'</td>'
+        +'</tr>').join('');
+    }
+  }catch(e){console.error(e);}
+}
+
 async function deletarEstoque(){
   const qty=parseInt(document.getElementById('est-qty').value);
   const motivo=document.getElementById('est-motivo').value.trim();
@@ -585,19 +696,6 @@ async function adicionarEstoque(){
     document.getElementById('est-motivo').value='';
     carregarEstoque();
   }catch(e){fb.textContent='Erro: '+e.message;fb.className='fb error';fb.style.display='block';}
-}
-function editarVendedor(id, emailAtual){
-  const novoEmail = prompt('Email atual: '+emailAtual+'\nNovo email (deixe vazio para manter):', emailAtual);
-  const novaSenha = prompt('Nova senha (deixe vazio para nao alterar):');
-  if(novoEmail===null && novaSenha===null) return;
-  const body = {};
-  if(novoEmail && novoEmail !== emailAtual) body.email = novoEmail;
-  if(novaSenha && novaSenha.length >= 6) body.novaSenha = novaSenha;
-  if(!Object.keys(body).length){alert('Nada alterado.');return;}
-  fetch(B+'/api/admin/vendedor/'+id+'/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-    .then(r=>r.json())
-    .then(d=>{if(d.ok)alert('Dados atualizados!');else alert('Erro: '+d.error);carregarAfiliados();})
-    .catch(()=>alert('Erro ao atualizar'));
 }
 
 function editarVendedor(id, emailAtual){
