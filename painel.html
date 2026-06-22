@@ -353,7 +353,8 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
         <div style="font-size:.8rem;color:var(--muted)" id="transf-email">-</div>
         <div style="font-size:.78rem;color:var(--warning);margin-top:8px">⚠️ Confira se o nome e email correspondem a pessoa certa antes de continuar.</div>
 
-        <div class="fg" style="margin-top:1rem"><label>Valor a transferir</label><input type="number" id="transf-valor" placeholder="0,00" min="0.01" step="0.01"></div>
+        <div class="fg" style="margin-top:1rem"><label>Valor a transferir</label><input type="number" id="transf-valor" placeholder="0,00" min="0.01" step="0.01" oninput="atualizarTotalTransferencia()"></div>
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem">Taxa de transferencia: R$ 10,00 &middot; Total a debitar do seu saldo: <strong id="transf-total-debitar" style="color:var(--blue-bright)">R$ 0,00</strong></div>
         <button class="bsaque" style="background:var(--blue)" onclick="confirmarTransferencia()">Confirmar Transferencia</button>
       </div>
 
@@ -979,12 +980,20 @@ async function buscarDestinatario(){
   }
 }
 
+const TRANSFERENCIA_TAXA=10;
+
+function atualizarTotalTransferencia(){
+  const valor=parseFloat(document.getElementById('transf-valor').value)||0;
+  document.getElementById('transf-total-debitar').textContent=f(valor+TRANSFERENCIA_TAXA);
+}
+
 async function confirmarTransferencia(){
   const fb=document.getElementById('fbtransf');
   const valor=parseFloat(document.getElementById('transf-valor').value);
   if(!destinatarioConfirmado){fb.textContent='Busque o destinatario primeiro';fb.className='fb error';fb.style.display='block';return;}
   if(!valor||valor<=0){fb.textContent='Informe um valor valido';fb.className='fb error';fb.style.display='block';return;}
-  if(!confirm('Confirma a transferencia de '+f(valor)+' para '+destinatarioConfirmado.nome+' ('+destinatarioConfirmado.id+')? Esta acao nao pode ser desfeita.'))return;
+  const totalDebitar=valor+TRANSFERENCIA_TAXA;
+  if(!confirm('Confirma a transferencia de '+f(valor)+' para '+destinatarioConfirmado.nome+' ('+destinatarioConfirmado.id+')?\n\nTotal a debitar do seu saldo (incluindo taxa de '+f(TRANSFERENCIA_TAXA)+'): '+f(totalDebitar)+'\n\nEsta acao nao pode ser desfeita.'))return;
   fb.textContent='Processando transferencia...';fb.className='fb loading';fb.style.display='block';
   try{
     const r=await fetch(B+'/api/transferencia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({remetenteId:ID,destinatarioId:destinatarioConfirmado.id,valor})});
@@ -994,6 +1003,7 @@ async function confirmarTransferencia(){
     document.getElementById('transf-confirmacao').style.display='none';
     document.getElementById('transf-codigo').value='';
     document.getElementById('transf-valor').value='';
+    document.getElementById('transf-total-debitar').textContent='R$ 0,00';
     destinatarioConfirmado=null;
     carregarPainelLogado();
   }catch(e){
