@@ -1,1275 +1,884 @@
-require('dotenv').config();
-const bcrypt = require('bcryptjs');
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
-const express = require('express');
-const cors = require('cors');
-const { createClient } = require('@supabase/supabase-js');
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrackingYou - Painel v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080c14;--bg2:#0e1524;--card:#111827;--blue:#3b82f6;--blue-bright:#60a5fa;--blue-glow:rgba(59,130,246,0.15);--blue-border:rgba(59,130,246,0.3);--text:#f0f4ff;--muted:#7f8ea8;--border:rgba(255,255,255,0.07);--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--r:12px;--r2:18px}
+body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+nav{background:rgba(8,12,20,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700}.logo span{color:var(--blue-bright)}
+.badge{background:var(--blue-glow);border:1px solid var(--blue-border);color:var(--blue-bright);padding:6px 14px;border-radius:100px;font-size:0.78rem;font-weight:700}
+main{max-width:1100px;margin:0 auto;padding:2rem}
+.loading{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:1rem}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-box{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--r);padding:2rem;text-align:center;margin:4rem auto;max-width:500px}
+.error-box h2{color:#fca5a5;margin-bottom:.5rem}.error-box p{color:var(--muted);font-size:.875rem}
+.vheader{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:2rem;margin-bottom:2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.vavatar{width:72px;height:72px;border-radius:50%;background:var(--blue-glow);border:2px solid var(--blue-border);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:var(--blue-bright);flex-shrink:0}
+.vinfo h1{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;margin-bottom:.25rem}
+.vinfo p{font-size:.875rem;color:var(--muted)}
+.vid{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px 12px;font-size:.78rem;color:var(--muted);font-family:monospace;margin-top:6px;display:inline-block}
+.slink{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.lbox{background:var(--bg2);border:1px solid var(--blue-border);border-radius:8px;padding:10px 14px;font-size:.78rem;color:var(--blue-bright);word-break:break-all;max-width:320px}
+.btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.8rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:opacity .2s}
+.btn:hover{opacity:.85}.btn.green{background:#25D366}.btn.big{padding:12px 28px;font-size:.95rem;border-radius:var(--r)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem}
+.scard.hl{border-color:var(--blue-border)}
+.slabel{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.sval{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;color:var(--blue-bright)}
+.sval.green{color:var(--success)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem}
+@media(max-width:768px){.g2{grid-template-columns:1fr}.slink{margin-left:0;align-items:flex-start}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.75rem;margin-bottom:2rem}
+.card h2{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.sdisplay{text-align:center;padding:1.5rem;background:var(--bg2);border-radius:var(--r);margin-bottom:1.25rem}
+.sval2{font-family:'Space Grotesk',sans-serif;font-size:2.5rem;font-weight:700;color:var(--success)}
+.fg{margin-bottom:1rem}
+.fg label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.fg input,.fg select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;font-family:Inter,sans-serif;transition:border-color .2s}
+.fg input:focus,.fg select:focus{border-color:var(--blue)}.fg input::placeholder{color:var(--muted)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:500px){.frow{grid-template-columns:1fr}}
+.bsaque{width:100%;background:var(--success);color:#fff;border:none;border-radius:var(--r);padding:14px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+.bsaque:disabled{opacity:.4;cursor:not-allowed}
+.fb{display:none;margin-top:1rem;padding:12px 14px;border-radius:8px;font-size:.875rem;font-weight:500}
+.fb.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#6ee7b7}
+.fb.error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
+.fb.loading{background:var(--blue-glow);border:1px solid var(--blue-border);color:var(--blue-bright)}
+.ci{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:.875rem}
+.ci:last-child{border-bottom:none}
+.cin{font-size:.72rem;color:var(--muted)}
+.cis{font-size:.72rem;padding:2px 8px;border-radius:100px;font-weight:600}
+.cis.pendente{background:rgba(245,158,11,.15);color:var(--warning)}
+.cis.pago{background:rgba(16,185,129,.15);color:var(--success)}
+.civ{font-weight:700;color:var(--blue-bright)}
+.btn-excluir-pedido{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:8px;padding:6px 10px;font-size:.85rem;cursor:pointer;transition:opacity .2s}
+.btn-excluir-pedido:hover{opacity:.7}
+.tree-wrap{overflow-x:auto;padding:1rem 0}
+.tnode{display:inline-flex;flex-direction:column;align-items:center;margin:0 8px}
+.tcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;text-align:center;min-width:120px;position:relative}
+.tcard.root{border-color:var(--blue-border)}
+.tcard.root::before{content:'VOCE';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:100px}
+.tname{font-size:.78rem;font-weight:700;margin-bottom:2px}
+.tid{font-size:.65rem;color:var(--muted);font-family:monospace}
+.tnivel{font-size:.65rem;color:var(--blue-bright);margin-top:2px}
+.tchildren{display:flex;margin-top:1rem}
+.empty{text-align:center;padding:2rem;color:var(--muted);font-size:.875rem}
+.brow{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem}
+.bsel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:.875rem;font-family:Inter,sans-serif;cursor:pointer}
+.btotal{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;color:var(--blue-bright)}
 
-// ─── SUPABASE ───────────────────────────────────────────────
-const ws = require('ws');
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY,
-  { global: { fetch: fetch }, realtime: { transport: ws } }
-);
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:2rem;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.modal-header h2{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.5rem;cursor:pointer;padding:4px 8px}
+.modal-close:hover{color:var(--text)}
+.fsec{font-size:.72rem;font-weight:700;color:var(--blue-bright);text-transform:uppercase;letter-spacing:.1em;margin:1.25rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.fsec:first-child{margin-top:0}
+.ptabs{display:flex;gap:8px;margin-bottom:1.5rem}
+.mtab{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;font-size:.8rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s}
+.mtab.active{background:var(--blue-glow);border-color:var(--blue-border);color:var(--blue-bright)}
+.mpanel{display:none}.mpanel.active{display:block}
+.pix-box{background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.15);border-radius:var(--r);padding:1.25rem;text-align:center}
+.boleto-box{background:rgba(59,130,246,0.05);border:1px solid var(--blue-border);border-radius:var(--r);padding:1.25rem;text-align:center}
+.pix-result{text-align:center;margin-top:1rem}
+.pix-result img{width:180px;height:180px;border-radius:10px;margin:0 auto .75rem;display:block;border:2px solid var(--blue-border)}
+.pix-code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:.72rem;color:var(--muted);word-break:break-all;margin-bottom:.5rem}
+.copy-btn{background:var(--blue-glow);border:1px solid var(--blue-border);color:var(--blue-bright);border-radius:8px;padding:8px 14px;font-size:.8rem;font-weight:700;cursor:pointer}
+.order-total-modal{display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--bg);border-radius:var(--r);margin-bottom:1.25rem}
+.otlabel{font-weight:700}
+.otval{font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:700;color:var(--blue-bright)}
+.btn-finalizar{width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--r);padding:15px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s;margin-top:1rem}
+.btn-finalizar:hover:not(:disabled){background:var(--blue-bright);transform:translateY(-1px)}
+.btn-finalizar:disabled{opacity:.5;cursor:not-allowed}
+.card-brands{display:flex;gap:6px;margin-bottom:1rem}
+.cbrand{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:.7rem;font-weight:700;color:var(--muted)}
 
-// ─── ASAAS CONFIG ───────────────────────────────────────────
-const IS_SANDBOX = (process.env.ASAAS_ENV || 'sandbox') === 'sandbox';
-const ASAAS_KEY = IS_SANDBOX
-  ? process.env.ASAAS_API_KEY_SANDBOX
-  : process.env.ASAAS_API_KEY_PRODUCTION;
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:var(--bg)}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:2.5rem;width:100%;max-width:400px}
 
-if (!ASAAS_KEY) {
-  console.warn('⚠️ AVISO: Chave Asaas não configurada');
+.pin-node{cursor:pointer;transition:opacity .15s}
+.pin-node:hover{opacity:.8}
+.filtro-nivel.ativo{background:var(--blue-glow)!important;border-color:var(--blue-border)!important;color:var(--blue-bright)!important}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap" style="display:none">
+  <div class="login-box">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:.5rem">Tracking<span style="color:var(--blue-bright)">You</span></div>
+    <div style="text-align:center;color:var(--muted);font-size:.875rem;margin-bottom:2rem">Backoffice Partner</div>
+    <div style="margin-bottom:1rem">
+      <label style="display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">CPF / CNPJ</label>
+      <input type="text" id="l-cpf" placeholder="000.000.000-00" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;font-family:Inter,sans-serif" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Senha</label>
+      <input type="password" id="l-senha" placeholder="Sua senha" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;font-family:Inter,sans-serif" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button onclick="fazerLogin()" style="width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--r);padding:14px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;margin-bottom:.75rem">Entrar</button>
+    <div style="text-align:center">
+      <a href="#" onclick="mostrarEsqueciSenha()" style="font-size:.8rem;color:var(--muted);text-decoration:none">Esqueci minha senha</a>
+    </div>
+    <div id="login-err" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;font-size:.875rem;color:#fca5a5;margin-top:1rem;text-align:center"></div>
+  </div>
+</div>
+
+<!-- ESQUECI SENHA -->
+<div class="login-wrap" id="esqueci-wrap" style="display:none">
+  <div class="login-box">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:.5rem">Tracking<span style="color:var(--blue-bright)">You</span></div>
+    <div style="text-align:center;color:var(--muted);font-size:.875rem;margin-bottom:2rem">Recuperar senha</div>
+    <div style="margin-bottom:1rem">
+      <label style="display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">CPF / CNPJ cadastrado</label>
+      <input type="text" id="e-cpf" placeholder="000.000.000-00" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;font-family:Inter,sans-serif">
+    </div>
+    <button onclick="enviarRecuperacao()" style="width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--r);padding:14px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;margin-bottom:.75rem">Enviar email de recuperacao</button>
+    <div style="text-align:center">
+      <a href="#" onclick="voltarLogin()" style="font-size:.8rem;color:var(--muted);text-decoration:none">Voltar ao login</a>
+    </div>
+    <div id="esqueci-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:.875rem;margin-top:1rem;text-align:center"></div>
+  </div>
+</div>
+
+<!-- RESET SENHA -->
+<div class="login-wrap" id="reset-wrap" style="display:none">
+  <div class="login-box">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:.5rem">Tracking<span style="color:var(--blue-bright)">You</span></div>
+    <div style="text-align:center;color:var(--muted);font-size:.875rem;margin-bottom:2rem">Nova senha</div>
+    <div style="margin-bottom:1rem">
+      <label style="display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Nova senha</label>
+      <input type="password" id="r-senha" placeholder="Minimo 6 caracteres" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;font-family:Inter,sans-serif">
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Repetir senha</label>
+      <input type="password" id="r-senha2" placeholder="Repita a senha" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.875rem;outline:none;font-family:Inter,sans-serif">
+    </div>
+    <button onclick="resetarSenha()" style="width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--r);padding:14px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif">Salvar nova senha</button>
+    <div id="reset-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:.875rem;margin-top:1rem;text-align:center"></div>
+  </div>
+</div>
+<nav>
+  <div class="logo">Tracking<span>YouClub</span></div>
+  <div class="badge" id="nav-name">...</div>
+</nav>
+
+<!-- MODAL CHECKOUT -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Comprar mais Tags</h2>
+      <button class="modal-close" onclick="fecharModal()">×</button>
+    </div>
+
+    <div class="order-total-modal">
+      <span class="otlabel">Total do pedido</span>
+      <span class="otval" id="m-total">R$ 299,90</span>
+    </div>
+
+    <input type="hidden" id="m-qty" value="1">
+    <input type="hidden" id="m-vendaId" value="">
+
+    <div class="fsec">Dados pessoais</div>
+    <div class="frow">
+      <div class="fg"><label>Nome</label><input type="text" id="m-nome" placeholder="Nome"></div>
+      <div class="fg"><label>Sobrenome</label><input type="text" id="m-sobrenome" placeholder="Sobrenome"></div>
+    </div>
+    <div class="fg"><label>E-mail</label><input type="email" id="m-email" placeholder="email@exemplo.com"></div>
+    <div class="frow">
+      <div class="fg"><label>CPF / CNPJ</label><input type="text" id="m-cpf" placeholder="000.000.000-00"></div>
+      <div class="fg"><label>Telefone</label><input type="text" id="m-tel" placeholder="(11) 99999-9999"></div>
+    </div>
+
+    <div class="fsec">Endereço de entrega</div>
+    <div class="frow">
+      <div class="fg"><label>CEP</label><input type="text" id="m-cep" placeholder="00000-000" maxlength="9" oninput="mMaskCEP(this)"></div>
+      <div class="fg"><label>Estado</label>
+        <select id="m-estado"><option value="">UF</option><option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option selected>SP</option><option>TO</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Endereço</label><input type="text" id="m-rua" placeholder="Rua / Av."></div>
+    <div class="frow">
+      <div class="fg"><label>Número</label><input type="text" id="m-num" placeholder="123"></div>
+      <div class="fg"><label>Complemento</label><input type="text" id="m-comp" placeholder="Apto..."></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Cidade</label><input type="text" id="m-cidade" placeholder="Cidade"></div>
+      <div class="fg"><label>Bairro</label><input type="text" id="m-bairro" placeholder="Bairro"></div>
+    </div>
+
+    <div class="fsec">Forma de pagamento</div>
+    <div class="ptabs">
+      <div class="mtab active" data-tab="card" onclick="mTab('card')">Cartão</div>
+      <div class="mtab" data-tab="pix" onclick="mTab('pix')">PIX</div>
+      <div class="mtab" data-tab="boleto" onclick="mTab('boleto')">Boleto</div>
+    </div>
+
+    <div class="mpanel active" id="mp-card">
+      <div class="card-brands"><span class="cbrand">VISA</span><span class="cbrand">MASTER</span><span class="cbrand">ELO</span><span class="cbrand">AMEX</span></div>
+      <div class="fg"><label>Número do cartão</label><input type="text" id="m-cnum" placeholder="0000 0000 0000 0000" maxlength="19" oninput="mMaskCard(this)"></div>
+      <div class="fg"><label>Nome no cartão</label><input type="text" id="m-cname" placeholder="NOME NO CARTÃO"></div>
+      <div class="frow">
+        <div class="fg"><label>Validade</label><input type="text" id="m-exp" placeholder="MM/AA" maxlength="5" oninput="mMaskExp(this)"></div>
+        <div class="fg"><label>CVV</label><input type="text" id="m-ccv" placeholder="000" maxlength="4"></div>
+      </div>
+    </div>
+
+    <div class="mpanel" id="mp-pix">
+      <div class="pix-box">
+        <div style="font-size:2rem;margin-bottom:.5rem">⚡</div>
+        <p style="color:var(--muted);font-size:.875rem">QR Code PIX gerado após confirmar. Aprovação instantânea.</p>
+        <div style="display:inline-block;background:rgba(16,185,129,.12);color:#6ee7b7;font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:6px;margin-top:8px">5% de desconto no PIX</div>
+      </div>
+      <div class="pix-result" id="m-pix-result" style="display:none">
+        <img id="m-pix-img" src="" alt="QR PIX">
+        <div class="pix-code" id="m-pix-code"></div>
+        <button class="copy-btn" onclick="copiarPix()">Copiar código PIX</button>
+      </div>
+    </div>
+
+    <div class="mpanel" id="mp-boleto">
+      <div class="boleto-box">
+        <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
+        <p style="color:var(--muted);font-size:.875rem">Boleto com vencimento em 3 dias úteis.</p>
+      </div>
+      <div id="m-boleto-result" style="display:none;margin-top:1rem;text-align:center">
+        <a id="m-boleto-link" href="#" target="_blank" style="color:var(--blue-bright);font-weight:700">Abrir boleto PDF →</a>
+      </div>
+    </div>
+
+    <div class="fb" id="m-fb"></div>
+    <button class="btn-finalizar" id="m-btn" onclick="finalizarCompra()">🔒 Finalizar — <span id="m-btn-total">R$ 299,90</span></button>
+  </div>
+</div>
+
+<main>
+  <div class="loading" id="loading"><div class="spinner"></div><p style="color:var(--muted);font-size:.875rem">Carregando...</p></div>
+  <div class="error-box" id="err" style="display:none"><h2>Painel nao encontrado</h2><p>Verifique o link recebido no WhatsApp.</p></div>
+  <div id="content" style="display:none">
+
+    <div class="vheader">
+      <div class="vavatar" id="va">?</div>
+      <div class="vinfo"><h1 id="vn">-</h1><p id="ve">-</p><div class="vid" id="vi">-</div></div>
+      <div class="slink">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Seu link de indicacao:</div>
+        <div class="lbox" id="vl">-</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" onclick="copiarLink()">Copiar link</button>
+          <a class="btn green" id="vwa" href="#" target="_blank">WhatsApp</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sgrid">
+      <div class="scard hl"><div class="slabel">Saldo disponivel</div><div class="sval green" id="ss">R$ 0,00</div></div>
+      <div class="scard"><div class="slabel">Total sacado</div><div class="sval" id="st">R$ 0,00</div></div>
+      <div class="scard"><div class="slabel">Vendas geradas</div><div class="sval" id="sv">0</div></div>
+      <div class="scard"><div class="slabel">Indicados diretos</div><div class="sval" id="si">0</div></div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <h2>Solicitar Saque</h2>
+        <div class="sdisplay">
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:.25rem">Saldo para saque</div>
+          <div class="sval2" id="ss2">R$ 0,00</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Minimo: R$ 50,00</div>
+        </div>
+        <div class="fg"><label>Chave PIX</label><input type="text" id="pix" placeholder="CPF, e-mail ou chave aleatoria"></div>
+        <button class="bsaque" id="bsq" onclick="saque()">Solicitar Saque (Manual)</button>
+        <button class="bsaque" id="bsqAuto" onclick="saqueAutomatico()" style="margin-top:8px;background:var(--blue)">⚡ Saque Automático (Pix)</button>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.5">O saque automático só funciona se sua chave Pix estiver cadastrada com o mesmo CPF/CNPJ desta conta. Caso contrário, será revisado manualmente.</div>
+        <div class="fb" id="fbsq"></div>
+      </div>
+      <div class="card"><h2>Ultimas Comissoes</h2><div id="lc"><div class="empty">Nenhuma comissao ainda</div></div></div>
+    </div>
+
+    <div class="card">
+      <h2>Comprar mais Tags</h2>
+      <p style="color:var(--muted);font-size:.875rem;margin-bottom:1.25rem">Adquira mais tags. As comissoes serao geradas para quem te indicou na rede.</p>
+      <div class="brow">
+        <select class="bsel" id="bqty" onchange="updTotal()">
+          <option value="1">1 unidade</option>
+          <option value="2">2 unidades</option>
+          <option value="3">3 unidades</option>
+          <option value="5">5 unidades</option>
+        </select>
+        <div class="btotal" id="btotal">R$ 299,90</div>
+      </div>
+      <button class="btn big" onclick="comprar()">Comprar agora</button>
+    </div>
+
+    
+    <div class="card">
+      <h2>Meus Pedidos</h2>
+      <div id="pedidos-list"><div class="empty">Carregando pedidos...</div></div>
+    </div>
+<div class="card" style="padding:0;overflow:hidden">
+      <div style="display:flex;flex-wrap:wrap">
+        <div style="width:240px;background:var(--bg2);border-right:1px solid var(--border);padding:1.25rem 1rem;flex-shrink:0">
+          <h2 style="border-bottom:none;padding-bottom:0;margin-bottom:1rem">Sua Rede</h2>
+          <div id="rede-resumo" style="display:flex;flex-direction:column;gap:6px;margin-bottom:1rem">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--blue-glow)">
+              <span style="font-size:.8rem;font-weight:700;color:var(--blue-bright)" id="rede-total">0 partners na rede</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px">
+              <span style="font-size:.8rem;color:var(--muted)" id="rede-niveis">0 niveis ativos</span>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:.5rem">
+            <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Filtrar por nivel</div>
+            <div id="rede-filtros" style="display:flex;flex-direction:column;gap:6px">
+              <button onclick="filtrarRede(0)" class="filtro-nivel ativo" data-nivel="0" style="text-align:left;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:.78rem;cursor:pointer">Todos os niveis</button>
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:.75rem;margin-top:1rem">
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">Total em comissoes</div>
+            <div style="font-size:1.2rem;font-weight:700;color:var(--success)" id="rede-comissoes">R$ 0,00</div>
+          </div>
+        </div>
+        <div style="flex:1;padding:1.5rem;overflow-x:auto;min-width:300px">
+          <div id="tree-svg-container" style="min-width:500px"><div class="empty">Carregando rede...</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const B='https://trackingyou-backend-production.up.railway.app';
+let ID='',VD=null,pixCC='';
+
+function f(v){return'R$ '+parseFloat(v).toFixed(2).replace('.',',');}
+
+async function init(){
+  const params = new URLSearchParams(window.location.search);
+  
+  // Verifica se tem token de reset
+  const resetToken = params.get('reset');
+  if(resetToken){
+    window._resetToken = resetToken;
+    document.getElementById('reset-wrap').style.display='flex';
+    return;
+  }
+
+  // Verifica se ja esta logado
+  const savedId = sessionStorage.getItem('ty_vendor_id');
+  if(savedId){
+    ID = savedId;
+    VD = null;
+    carregarPainelLogado();
+    return;
+  }
+
+  // Verifica se tem id na URL (link direto antigo)
+  ID = params.get('id');
+  if(ID){
+    sessionStorage.setItem('ty_vendor_id', ID);
+    carregarPainelLogado();
+    return;
+  }
+
+  // Mostra login
+  document.getElementById('login-wrap').style.display='flex';
 }
 
-const ASAAS_BASE = IS_SANDBOX
-  ? 'https://sandbox.asaas.com/api/v3'
-  : 'https://api.asaas.com/v3';
+async function carregarPainelLogado(){
+  document.getElementById('loading').style.display='flex';
+  try{
+    const r=await fetch(B+'/api/vendedor/'+ID);
+    if(!r.ok)throw 0;
+    VD=await r.json();
+    render(VD);
+    loadTree();
+    carregarPedidos();
+  }catch(e){
+    sessionStorage.removeItem('ty_vendor_id');
+    document.getElementById('loading').style.display='none';
+    document.getElementById('login-wrap').style.display='flex';
+  }
+}
 
-const WEBHOOK_TOKEN = process.env.ASAAS_WEBHOOK_TOKEN || '';
+async function fazerLogin(){
+  const cpf=document.getElementById('l-cpf').value.trim();
+  const senha=document.getElementById('l-senha').value.trim();
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  if(!cpf||!senha){err.textContent='Preencha CPF/CNPJ e senha';err.style.display='block';return;}
+  try{
+    const r=await fetch(B+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cpfCnpj:cpf,senha})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    ID=d.id;
+    sessionStorage.setItem('ty_vendor_id',ID);
+    document.getElementById('login-wrap').style.display='none';
+    carregarPainelLogado();
+  }catch(e){err.textContent=e.message;err.style.display='block';}
+}
 
-// ─── APP ────────────────────────────────────────────────────
-const app = express();
+function mostrarEsqueciSenha(){
+  document.getElementById('login-wrap').style.display='none';
+  document.getElementById('esqueci-wrap').style.display='flex';
+}
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '*').split(',').map(o => o.trim());
+function voltarLogin(){
+  document.getElementById('esqueci-wrap').style.display='none';
+  document.getElementById('login-wrap').style.display='flex';
+}
 
-app.use(cors({
-  origin: (origin, cb) => {
-    return cb(null, true);
-    cb(new Error(`Origem não permitida: ${origin}`));
-  },
-  methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-  allowedHeaders: ['Content-Type'],
-}));
+async function enviarRecuperacao(){
+  const cpf=document.getElementById('e-cpf').value.trim();
+  const msg=document.getElementById('esqueci-msg');
+  if(!cpf){msg.textContent='Informe seu CPF/CNPJ';msg.style.background='rgba(239,68,68,.1)';msg.style.color='#fca5a5';msg.style.display='block';return;}
+  try{
+    const r=await fetch(B+'/api/auth/esqueci-senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cpfCnpj:cpf})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    msg.textContent='Email enviado para '+(d.emailMascarado||'seu email cadastrado')+'. Verifique sua caixa de entrada.';msg.style.background='rgba(16,185,129,.1)';msg.style.color='#6ee7b7';msg.style.display='block';
+  }catch(e){msg.textContent=e.message;msg.style.background='rgba(239,68,68,.1)';msg.style.color='#fca5a5';msg.style.display='block';}
+}
 
-app.use(express.json());
+async function resetarSenha(){
+  const nova=document.getElementById('r-senha').value;
+  const nova2=document.getElementById('r-senha2').value;
+  const msg=document.getElementById('reset-msg');
+  if(!nova||nova.length<6){msg.textContent='Senha deve ter pelo menos 6 caracteres';msg.style.background='rgba(239,68,68,.1)';msg.style.color='#fca5a5';msg.style.display='block';return;}
+  if(nova!==nova2){msg.textContent='As senhas nao coincidem';msg.style.background='rgba(239,68,68,.1)';msg.style.color='#fca5a5';msg.style.display='block';return;}
+  try{
+    const r=await fetch(B+'/api/auth/resetar-senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:window._resetToken,novaSenha:nova})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    msg.textContent='Senha redefinida! Redirecionando...';msg.style.background='rgba(16,185,129,.1)';msg.style.color='#6ee7b7';msg.style.display='block';
+    setTimeout(()=>{window.location.href='painel.html';},2000);
+  }catch(e){msg.textContent=e.message;msg.style.background='rgba(239,68,68,.1)';msg.style.color='#fca5a5';msg.style.display='block';}
+}
+async function init_OLD(){
+  const p=new URLSearchParams(window.location.search);
+  ID=p.get('id');
+  if(!ID){hide();return;}
+  try{
+    const r=await fetch(B+'/api/vendedor/'+ID);
+    if(!r.ok)throw 0;
+    VD=await r.json();
+    render(VD);
+    loadTree();
+  }catch(e){hide();}
+}
 
-app.use((req, _res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
+function hide(){document.getElementById('loading').style.display='none';document.getElementById('err').style.display='block';}
+function show(){document.getElementById('loading').style.display='none';document.getElementById('content').style.display='block';}
 
-// ─── HELPERS ASAAS ──────────────────────────────────────────
-const asaasHeaders = {
-  'Content-Type': 'application/json',
-  'access_token': ASAAS_KEY,
-};
+function render(d){
+  const v=d.vendedor,s=d.stats,c=d.comissoes,l=d.link;
+  document.getElementById('nav-name').textContent=v.nome.split(' ')[0];
+  document.getElementById('va').textContent=v.nome.charAt(0);
+  document.getElementById('vn').textContent=v.nome;
+  document.getElementById('ve').textContent=v.email;
+  document.getElementById('vi').textContent='ID: '+v.id;
+  document.getElementById('vl').textContent=l;
+  document.getElementById('vwa').href='https://wa.me/?text='+encodeURIComponent('Conheca o TrackingYou! '+l);
+  document.getElementById('ss').textContent=f(s.saldoDisponivel);
+  document.getElementById('st').textContent=f(s.saldoSacado);
+  document.getElementById('sv').textContent=s.totalVendas;
+  document.getElementById('si').textContent=s.totalIndicados;
+  document.getElementById('ss2').textContent=f(s.saldoDisponivel);
+  if(s.saldoDisponivel<50){document.getElementById('bsq').disabled=true;document.getElementById('bsqAuto').disabled=true;}
+  if(c&&c.length>0){
+    document.getElementById('lc').innerHTML=c.slice(0,10).map(x=>
+      '<div class="ci"><div><div>Nivel '+x.nivel+' - '+x.percentual+'%</div><div class="cin">'+new Date(x.data_criacao).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+x.status+'">'+x.status+'</span><span class="civ">'+f(x.valor)+'</span></div></div>'
+    ).join('');
+  }
+  show();
+}
 
-async function asaasPost(path, body) {
-  const res = await fetch(`${ASAAS_BASE}${path}`, {
-    method: 'POST',
-    headers: asaasHeaders,
-    body: JSON.stringify(body),
+let REDE_DATA = null;
+let REDE_FILTRO = 0;
+
+const NIVEL_CORES = [
+  {fill:'#60a5fa', stroke:'#3b82f6', text:'#0c2540'},
+  {fill:'#c4b5fd', stroke:'#a78bfa', text:'#2e1a5c'},
+  {fill:'#5eead4', stroke:'#14b8a6', text:'#0a3a32'},
+  {fill:'#fca5a5', stroke:'#ef4444', text:'#4a1010'},
+  {fill:'#d1d5db', stroke:'#9ca3af', text:'#1f2937'}
+];
+
+async function loadTree(){
+  try{
+    const r=await fetch(B+'/api/rede/'+ID);
+    const t=await r.json();
+    REDE_DATA = t;
+    renderRedeResumo(t);
+    renderRedeFiltros(t);
+    renderRedeSvg(t);
+  }catch(e){
+    document.getElementById('tree-svg-container').innerHTML='<div class="empty">Erro ao carregar rede</div>';
+  }
+}
+
+function contarNodos(n, nivel, contagem){
+  if(!n) return contagem;
+  if(nivel > 0) contagem.total++;
+  contagem.porNivel[nivel] = (contagem.porNivel[nivel]||0) + (nivel>0?1:0);
+  (n.children||[]).forEach(c => contarNodos(c, nivel+1, contagem));
+  return contagem;
+}
+
+function renderRedeResumo(t){
+  const c = contarNodos(t, 0, {total:0, porNivel:{}});
+  document.getElementById('rede-total').textContent = c.total + (c.total===1?' partner na rede':' partners na rede');
+  const niveisAtivos = Object.keys(c.porNivel).filter(k=>c.porNivel[k]>0).length;
+  document.getElementById('rede-niveis').textContent = niveisAtivos + (niveisAtivos===1?' nivel ativo':' niveis ativos');
+  let comissaoTotal = 0;
+  if(VD && VD.comissoes) comissaoTotal = VD.comissoes.reduce((s,x)=>s+parseFloat(x.valor),0);
+  document.getElementById('rede-comissoes').textContent = f(comissaoTotal);
+}
+
+function renderRedeFiltros(t){
+  const c = contarNodos(t, 0, {total:0, porNivel:{}});
+  const maxNivel = Math.max(0, ...Object.keys(c.porNivel).map(Number));
+  const cont = document.getElementById('rede-filtros');
+  let html = '<button onclick="filtrarRede(0)" class="filtro-nivel'+(REDE_FILTRO===0?' ativo':'')+'" data-nivel="0" style="text-align:left;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:.78rem;cursor:pointer">Todos os niveis</button>';
+  for(let i=1;i<=maxNivel;i++){
+    if(c.porNivel[i]>0){
+      html += '<button onclick="filtrarRede('+i+')" class="filtro-nivel'+(REDE_FILTRO===i?' ativo':'')+'" data-nivel="'+i+'" style="text-align:left;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:.78rem;cursor:pointer">Nivel '+i+' ('+c.porNivel[i]+' partner'+(c.porNivel[i]>1?'s':'')+')</button>';
+    }
+  }
+  cont.innerHTML = html;
+}
+
+function filtrarRede(nivel){
+  REDE_FILTRO = nivel;
+  document.querySelectorAll('.filtro-nivel').forEach(b=>b.classList.toggle('ativo', parseInt(b.dataset.nivel)===nivel));
+  if(REDE_DATA) renderRedeSvg(REDE_DATA);
+}
+
+function buildTreeLayout(node, nivel, x, spacing){
+  if(!node) return {nodes:[], width:0};
+  const children = node.children || [];
+  if(children.length === 0){
+    return {
+      nodes:[{node, nivel, x, childrenX:[]}],
+      width: spacing
+    };
+  }
+  let totalWidth = 0;
+  let childResults = [];
+  let curX = x - (children.length-1) * spacing / 2;
+  children.forEach((child, i) => {
+    const childSpacing = spacing;
+    const res = buildTreeLayout(child, nivel+1, curX, childSpacing * 0.85);
+    childResults.push(res);
+    curX += childSpacing;
+    totalWidth += res.width;
   });
-  const data = await res.json();
-  if (!res.ok) console.error(`[Asaas POST ${path}] HTTP ${res.status}`, JSON.stringify(data));
-  return data;
+  const childrenX = childResults.map(r => r.nodes[0] ? r.nodes[0].x : 0);
+  const avgX = childrenX.length ? childrenX.reduce((a,b)=>a+b,0)/childrenX.length : x;
+  let allNodes = [{node, nivel, x: avgX, childrenX}];
+  childResults.forEach(r => { allNodes = allNodes.concat(r.nodes); });
+  return {nodes: allNodes, width: Math.max(totalWidth, spacing)};
 }
 
-async function asaasGet(path) {
-  const res = await fetch(`${ASAAS_BASE}${path}`, { method: 'GET', headers: asaasHeaders });
-  const data = await res.json();
-  if (!res.ok) console.error(`[Asaas GET ${path}] HTTP ${res.status}`, JSON.stringify(data));
-  return data;
-}
+function renderRedeSvg(t){
+  const cont = document.getElementById('tree-svg-container');
+  if(!t){ cont.innerHTML = '<div class="empty">Nenhum dado de rede</div>'; return; }
 
-// ─── HELPERS MLM ────────────────────────────────────────────
-
-// Gera ID único de 4 caracteres
-function gerarId() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let id = '';
-  for (let i = 0; i < 4; i++) id += chars[Math.floor(Math.random() * chars.length)];
-  return id;
-}
-
-async function gerarIdUnico() {
-  let id, existe;
-  do {
-    id = gerarId();
-    const { data } = await supabase.from('usuarios').select('id').eq('id', id);
-    existe = data && data.length > 0;
-  } while (existe);
-  return id;
-}
-
-// Busca cadeia de uplines para calcular comissões
-async function buscarUplines(vendedorId, maxNiveis = 3) {
-  const uplines = [];
-  let currentId = vendedorId;
-
-  for (let i = 0; i < maxNiveis; i++) {
-    const { data } = await supabase
-      .from('usuarios')
-      .select('id, ref_id, nome, telefone')
-      .eq('id', currentId)
-      .single();
-
-    if (!data || !data.ref_id) break;
-    uplines.push(data.ref_id);
-    currentId = data.ref_id;
+  let filteredTree = JSON.parse(JSON.stringify(t));
+  if(REDE_FILTRO > 0){
+    function pruneToLevel(node, curLevel){
+      if(curLevel >= REDE_FILTRO){ node.children = []; return; }
+      (node.children||[]).forEach(c => pruneToLevel(c, curLevel+1));
+    }
+    pruneToLevel(filteredTree, 0);
   }
 
-  return uplines;
-}
+  const layout = buildTreeLayout(filteredTree, 0, 300, 130);
+  if(!layout.nodes.length){ cont.innerHTML = '<div class="empty">Nenhum indicado ainda</div>'; return; }
 
-// Calcula e insere comissões na cadeia MLM
-async function processarComissoes(vendaId, vendedorId, valorVenda) {
-  const percentuais = [
-    { nivel: 1, pct: 20 }, // vendedor direto
-    { nivel: 2, pct: 5  }, // nível 1
-    { nivel: 3, pct: 3  }, // nível 2
-    { nivel: 4, pct: 2  }, // nível 3
-  ];
+  const maxNivel = Math.max(...layout.nodes.map(n=>n.nivel));
+  const width = Math.max(600, layout.width + 100);
+  const height = 70 + maxNivel * 110 + 60;
 
-  // Nível 1: vendedor direto
-  const comissoes = [];
+  let svg = '<svg viewBox="0 0 '+width+' '+height+'" style="width:100%;height:'+height+'px;min-width:'+Math.min(width,1200)+'px">';
 
-  if (vendedorId) {
-    const valor1 = parseFloat((valorVenda * 0.20).toFixed(2));
-    comissoes.push({
-      venda_id: vendaId,
-      beneficiario_id: vendedorId,
-      nivel: 1,
-      percentual: 20,
-      valor: valor1,
-      status: 'pendente',
+  const nodeByNivel = {};
+  layout.nodes.forEach(n => { (nodeByNivel[n.nivel] = nodeByNivel[n.nivel]||[]).push(n); });
+
+  layout.nodes.forEach(n => {
+    const y = 40 + n.nivel * 110;
+    (n.node.children||[]).forEach((child, i) => {
+      const childNode = layout.nodes.find(cn => cn.nivel === n.nivel+1 && cn.node.id === child.id);
+      if(!childNode) return;
+      const cy = 40 + (n.nivel+1) * 110;
+      const midY = y + 28 + (cy - 28 - (y+28))/2 + 15;
+      svg += '<line x1="'+n.x+'" y1="'+(y+28)+'" x2="'+n.x+'" y2="'+midY+'" stroke="var(--border)" stroke-width="2"/>';
+      svg += '<line x1="'+n.x+'" y1="'+midY+'" x2="'+childNode.x+'" y2="'+midY+'" stroke="var(--border)" stroke-width="2"/>';
+      svg += '<line x1="'+childNode.x+'" y1="'+midY+'" x2="'+childNode.x+'" y2="'+(cy-28)+'" stroke="var(--border)" stroke-width="2"/>';
     });
+  });
 
-    // Busca uplines para níveis 2, 3, 4
-    const uplines = await buscarUplines(vendedorId, 3);
-    const pcts = [5, 3, 2];
+  layout.nodes.forEach(n => {
+    const y = 40 + n.nivel * 110;
+    const color = NIVEL_CORES[Math.min(n.nivel, NIVEL_CORES.length-1)];
+    const isRoot = n.nivel === 0;
+    const radius = isRoot ? 28 : 24;
+    const initials = (n.node.nome||'??').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+    const nomeExibido = (n.node.nome||'').split(' ')[0];
 
-    for (let i = 0; i < uplines.length; i++) {
-      const valor = parseFloat((valorVenda * pcts[i] / 100).toFixed(2));
-      comissoes.push({
-        venda_id: vendaId,
-        beneficiario_id: uplines[i],
-        nivel: i + 2,
-        percentual: pcts[i],
-        valor,
-        status: 'pendente',
-      });
+    svg += '<g class="pin-node" onclick="abrirPartnerInfo(\''+n.node.id+'\')">';
+    svg += '<circle cx="'+n.x+'" cy="'+y+'" r="'+radius+'" fill="'+color.fill+'" stroke="'+color.stroke+'" stroke-width="2"/>';
+    svg += '<text x="'+n.x+'" y="'+(y+5)+'" text-anchor="middle" font-size="'+(isRoot?14:12)+'" font-weight="700" fill="'+color.text+'">'+initials+'</text>';
+    if(!isRoot){
+      svg += '<path d="M '+n.x+' '+(y+radius)+' L '+(n.x-9)+' '+(y+radius+20)+' L '+(n.x+9)+' '+(y+radius+20)+' Z" fill="'+color.fill+'" stroke="'+color.stroke+'" stroke-width="1"/>';
     }
-  }
+    const labelY = isRoot ? y + radius + 18 : y + radius + 36;
+    svg += '<text x="'+n.x+'" y="'+labelY+'" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">'+nomeExibido+'</text>';
+    if(isRoot){
+      svg += '<text x="'+n.x+'" y="'+(labelY+14)+'" text-anchor="middle" font-size="10" fill="var(--muted)">Voce</text>';
+    }else{
+      svg += '<text x="'+n.x+'" y="'+(labelY+14)+'" text-anchor="middle" font-size="10" fill="var(--muted)">Nivel '+n.nivel+' &middot; '+n.node.id+'</text>';
+    }
+    svg += '</g>';
+  });
 
-  if (comissoes.length > 0) {
-    const { error } = await supabase.from('comissoes').insert(comissoes);
-    if (error) console.error('[Comissões] Erro ao inserir:', error);
-    else console.log(`[Comissões] ${comissoes.length} comissões registradas para venda ${vendaId}`);
+  svg += '</svg>';
+  cont.innerHTML = svg;
+}
+
+function abrirPartnerInfo(partnerId){
+  window.open('painel.html?id='+partnerId, '_blank');
+}
+
+function node(n,root){return'';}
+
+function updTotal(){
+  const q=parseInt(document.getElementById('bqty').value);
+  document.getElementById('btotal').textContent=f(299.90*q);
+}
+
+function comprar(){
+  const q=parseInt(document.getElementById('bqty').value);
+  abrirModal(q);
+}
+
+function abrirModal(qty){
+  const v=VD.vendedor;
+  document.getElementById('m-qty').value=qty;
+  document.getElementById('m-total').textContent=f(299.90*qty);
+  document.getElementById('m-btn-total').textContent=f(299.90*qty);
+  document.getElementById('m-nome').value=v.nome.split(' ')[0]||'';
+  document.getElementById('m-sobrenome').value=v.nome.split(' ').slice(1).join(' ')||'';
+  document.getElementById('m-email').value=v.email||'';
+  document.getElementById('m-cpf').value=v.cpf_cnpj||'';
+  document.getElementById('m-tel').value=v.telefone?'('+v.telefone.slice(0,2)+') '+v.telefone.slice(2):'';
+  document.getElementById('modal').style.display='flex';
+}
+
+function fecharModal(){
+  document.getElementById('modal').style.display='none';
+  document.getElementById('m-fb').style.display='none';
+  document.getElementById('m-btn').disabled=false;
+  document.getElementById('m-pix-result').style.display='none';
+  document.getElementById('m-boleto-result').style.display='none';
+}
+
+function mTab(t){
+  document.querySelectorAll('.mtab').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));
+  document.querySelectorAll('.mpanel').forEach(x=>x.classList.toggle('active',x.id==='mp-'+t));
+}
+
+function mMaskCEP(el){
+  let v=el.value.replace(/\D/g,'').slice(0,8);
+  v=v.replace(/(\d{5})(\d)/,'$1-$2');
+  el.value=v;
+  if(v.replace(/\D/g,'').length===8)mBuscaCEP(v);
+}
+function mMaskCard(el){let v=el.value.replace(/\D/g,'').slice(0,16);v=v.replace(/(\d{4})/g,'$1 ').trim();el.value=v;}
+function mMaskExp(el){let v=el.value.replace(/\D/g,'').slice(0,4);v=v.replace(/(\d{2})(\d)/,'$1/$2');el.value=v;}
+
+async function mBuscaCEP(cep){
+  cep=cep.replace(/\D/g,'');
+  if(cep.length!==8)return;
+  try{
+    const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');
+    const d=await r.json();
+    if(d.erro)return;
+    document.getElementById('m-rua').value=d.logradouro||'';
+    document.getElementById('m-bairro').value=d.bairro||'';
+    document.getElementById('m-cidade').value=d.localidade||'';
+    document.getElementById('m-estado').value=d.uf||'';
+  }catch(e){}
+}
+
+async function finalizarCompra(){
+  const qty=parseInt(document.getElementById('m-qty').value);
+  const tab=document.querySelector('.mtab.active').dataset.tab;
+  const fb=document.getElementById('m-fb');
+  const ref=VD.vendedor.ref_id||'FL01';
+
+  let total=299.90*qty;
+  if(tab==='pix')total=parseFloat((total*0.95).toFixed(2));
+
+  const cd={
+    name:(document.getElementById('m-nome').value+' '+document.getElementById('m-sobrenome').value).trim(),
+    email:document.getElementById('m-email').value,
+    cpfCnpj:document.getElementById('m-cpf').value,
+    phone:document.getElementById('m-tel').value,
+    postalCode:document.getElementById('m-cep').value,
+    address:document.getElementById('m-rua').value,
+    addressNumber:document.getElementById('m-num').value,
+    addressComplement:document.getElementById('m-comp').value||null,
+    city:document.getElementById('m-cidade').value,
+    state:document.getElementById('m-estado').value
+  };
+
+  fb.textContent='Processando...';fb.className='fb loading';fb.style.display='block';
+  document.getElementById('m-btn').disabled=true;
+
+  try{
+    let body={customer:cd,amount:parseFloat(total.toFixed(2)),productName:'TrackingYou Tag+',refId:ref};
+
+    if(tab==='card'){
+      const exp=document.getElementById('m-exp').value.split('/');
+      body.card={holderName:document.getElementById('m-cname').value,number:document.getElementById('m-cnum').value.replace(/\s/g,''),expiryMonth:exp[0],expiryYear:'20'+(exp[1]||''),ccv:document.getElementById('m-ccv').value};
+      body.installments=1;
+      try{const ip=await fetch('https://api.ipify.org?format=json');const ipd=await ip.json();body.remoteIp=ipd.ip;}catch(e){body.remoteIp='0.0.0.0';}
+    }
+
+    const r=await fetch(B+'/api/pay/'+tab,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!d.success)throw new Error(d.message||'Erro no pagamento');
+
+    if(tab==='pix'){
+      pixCC=d.pixCopiaECola;
+      document.getElementById('m-pix-img').src='data:image/png;base64,'+d.pixQrCode;
+      document.getElementById('m-pix-code').textContent=d.pixCopiaECola;
+      document.getElementById('m-pix-result').style.display='block';
+      fb.textContent='QR Code gerado! Pague via PIX para confirmar.';fb.className='fb success';
+    } else if(tab==='boleto'){
+      document.getElementById('m-boleto-link').href=d.bankSlipUrl||d.invoiceUrl;
+      document.getElementById('m-boleto-result').style.display='block';
+      fb.textContent='Boleto gerado! Pague em ate 3 dias uteis.';fb.className='fb success';
+    } else {
+      fb.textContent='Pagamento aprovado! Voce recebera confirmacao por e-mail.';fb.className='fb success';
+    }
+  }catch(e){
+    fb.textContent='Erro: '+e.message;fb.className='fb error';
+    document.getElementById('m-btn').disabled=false;
   }
 }
 
-// Cadastra comprador como vendedor após pagamento confirmado
-async function cadastrarVendedor(dadosComprador, refId) {
-  const novoId = await gerarIdUnico();
-
-  // Busca nível do upline
-  let nivel = 1;
-  if (refId) {
-    const { data: upline } = await supabase.from('usuarios').select('nivel').eq('id', refId).single();
-    if (upline) nivel = upline.nivel + 1;
-  }
-
-  const senhaHash = dadosComprador.senha ? await bcrypt.hash(dadosComprador.senha, 10) : null;
-
-  const { data, error } = await supabase.from('usuarios').insert({
-    id: novoId,
-    nome: dadosComprador.nome,
-    email: dadosComprador.email,
-    telefone: dadosComprador.telefone,
-    cpf_cnpj: dadosComprador.cpfCnpj,
-    ref_id: refId || 'FL01',
-    nivel,
-    senha_hash: senhaHash,
-  }).select().single();
-
-  if (error) {
-    // Se email já existe, retorna usuário existente
-    if (error.code === '23505') {
-      const { data: existente } = await supabase.from('usuarios').select('*').eq('email', dadosComprador.email).single();
-      return existente;
-    }
-    console.error('[Vendedor] Erro ao cadastrar:', error);
-    return null;
-  }
-
-  console.log(`[Vendedor] Novo vendedor cadastrado: ${novoId} - ${dadosComprador.nome}`);
-  return data;
+function copiarPix(){
+  navigator.clipboard.writeText(pixCC).then(()=>{
+    const b=document.querySelector('.copy-btn');b.textContent='Copiado!';
+    setTimeout(()=>b.textContent='Copiar codigo PIX',2000);
+  });
 }
 
-// Envia email via Resend
-async function enviarWhatsApp(telefone, mensagem, dadosVendedor) {
-  try {
-    if (!dadosVendedor || !dadosVendedor.email) {
-      console.log('[Email] Sem email para enviar');
+async function saque(){
+  const pk=document.getElementById('pix').value.trim();
+  const fb=document.getElementById('fbsq');
+  if(!pk){fb.textContent='Informe sua chave PIX';fb.className='fb error';fb.style.display='block';return;}
+  document.getElementById('bsq').disabled=true;
+  document.getElementById('bsqAuto').disabled=true;
+  try{
+    const r=await fetch(B+'/api/saque',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendedorId:ID,pixKey:pk})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    fb.textContent=d.mensagem;fb.className='fb success';fb.style.display='block';
+  }catch(e){
+    fb.textContent=e.message;fb.className='fb error';fb.style.display='block';
+    document.getElementById('bsq').disabled=false;
+    document.getElementById('bsqAuto').disabled=false;
+  }
+}
+
+async function saqueAutomatico(){
+  const pk=document.getElementById('pix').value.trim();
+  const fb=document.getElementById('fbsq');
+  if(!pk){fb.textContent='Informe sua chave PIX';fb.className='fb error';fb.style.display='block';return;}
+  document.getElementById('bsq').disabled=true;
+  document.getElementById('bsqAuto').disabled=true;
+  fb.textContent='Validando chave Pix e processando...';fb.className='fb loading';fb.style.display='block';
+  try{
+    const r=await fetch(B+'/api/saque/automatico',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendedorId:ID,pixKey:pk})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    fb.textContent=d.mensagem;fb.className='fb '+(d.automatico?'success':'error');fb.style.display='block';
+  }catch(e){
+    fb.textContent=e.message;fb.className='fb error';fb.style.display='block';
+  }finally{
+    document.getElementById('bsq').disabled=false;
+    document.getElementById('bsqAuto').disabled=false;
+  }
+}
+
+function copiarLink(){
+  navigator.clipboard.writeText(document.getElementById('vl').textContent).then(()=>{
+    const b=document.querySelector('.btn');b.textContent='Copiado!';
+    setTimeout(()=>b.textContent='Copiar link',2000);
+  });
+}
+
+
+async function carregarPedidos(){
+  const cont = document.getElementById('pedidos-list');
+  try{
+    const r = await fetch(B+'/api/partner/'+ID+'/pedidos');
+    const pedidos = await r.json();
+    if(!pedidos || !pedidos.length){
+      cont.innerHTML = '<div class="empty">Nenhum pedido encontrado</div>';
       return;
     }
-    const nome = dadosVendedor.nome ? dadosVendedor.nome.split(' ')[0] : 'Vendedor';
-    const link = dadosVendedor.link || 'https://trackingyouclub-gif.github.io/trackingyou-frontend/painel.html';
-    await resend.emails.send({
-      from: 'TrackingYou <noreply@tracking-you.com>',
-      to: dadosVendedor.email,
-      subject: '🎉 Sua compra foi aprovada! Acesse seu painel TrackingYou',
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#080c14;color:#f0f4ff;border-radius:12px;padding:2rem">
-          <h1 style="color:#60a5fa;font-size:1.5rem">🎉 Parabéns, ${nome}!</h1>
-          <p style="font-size:1rem;line-height:1.6">Sua compra da <strong>TrackingYou Tag+</strong> foi confirmada com sucesso!</p>
-          <p style="font-size:1rem;line-height:1.6">Agora você também faz parte da nossa rede de vendedores. Compartilhe seu link e ganhe comissões!</p>
-          <div style="background:#111827;border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:1.5rem;margin:1.5rem 0">
-            <p style="color:#7f8ea8;font-size:0.85rem;margin-bottom:0.5rem">Seu link de indicação:</p>
-            <p style="color:#60a5fa;font-weight:700;word-break:break-all">${link}</p>
-          </div>
-          <a href="${link.replace('?ref=','painel.html?id=').replace(/\?ref=.*/,'painel.html?id='+dadosVendedor.id)}" style="display:inline-block;background:#3b82f6;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:1rem;margin-bottom:1rem">Acessar meu painel →</a>
-          <p style="color:#7f8ea8;font-size:0.85rem">Login: seu CPF/CNPJ + senha criada na compra</p>
-          <p style="color:#7f8ea8;font-size:0.85rem">ID do vendedor: <strong style="color:#f0f4ff">${dadosVendedor.id}</strong></p>
-          <hr style="border-color:rgba(255,255,255,0.07);margin:1.5rem 0">
-          <p style="color:#7f8ea8;font-size:0.8rem">TrackingYou — Rastreamento para veículos, pessoas e pets.</p>
-        </div>
-      `
-    });
-    console.log(`[Email] Enviado para ${dadosVendedor.email}`);
-  } catch (e) {
-    console.error('[Email] Erro:', e.message);
+    cont.innerHTML = pedidos.map(p => {
+      const statusClass = p.status === 'pago' ? 'pago' : (p.status === 'cancelado' ? 'pendente' : 'pendente');
+      const statusLabel = p.status === 'pago' ? 'Pago' : (p.status === 'cancelado' ? 'Cancelado' : 'Pendente');
+      const btnPagar = p.status === 'pendente' ? '<button class="btn green" style="margin-left:8px" onclick="abrirPagamentoPendente(\''+p.id+'\','+p.valor+')">Finalizar pagamento</button>' : '';
+      const btnExcluir = p.status === 'pendente' ? '<button class="btn-excluir-pedido" style="margin-left:8px" onclick="excluirPedido(\''+p.id+'\')" title="Excluir pedido">🗑️</button>' : '';
+      return '<div class="ci"><div><div style="font-weight:600">'+f(p.valor)+'</div><div class="cin">'+new Date(p.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span>'+btnPagar+btnExcluir+'</div></div>';
+    }).join('');
+  }catch(e){
+    cont.innerHTML = '<div class="empty">Erro ao carregar pedidos</div>';
   }
 }
 
-// ─── HELPER CLIENTE ASAAS ───────────────────────────────────
-async function getOrCreateCustomer(data) {
-  const cpf = data.cpfCnpj.replace(/\D/g, '');
-  const search = await asaasGet(`/customers?cpfCnpj=${cpf}`);
-  if (search.data?.length > 0) {
-    console.log(`[Cliente] Encontrado: ${search.data[0].id}`);
-    return search.data[0].id;
-  }
-  const customer = await asaasPost('/customers', {
-    name: data.name,
-    email: data.email,
-    cpfCnpj: cpf,
-    phone: data.phone?.replace(/\D/g, ''),
-    mobilePhone: data.phone?.replace(/\D/g, ''),
-    postalCode: data.postalCode?.replace(/\D/g, ''),
-    address: data.address,
-    addressNumber: data.addressNumber,
-    complement: data.addressComplement || '',
-    city: data.city,
-    state: data.state,
-    notificationDisabled: false,
-  });
-  if (customer.errors) throw new Error(customer.errors[0]?.description || 'Erro ao criar cliente');
-  console.log(`[Cliente] Criado: ${customer.id}`);
-  return customer.id;
+function abrirPagamentoPendente(vendaId, valor){
+  document.getElementById('m-qty').value = 1;
+  document.getElementById('m-total').textContent = f(valor);
+  document.getElementById('m-btn-total').textContent = f(valor);
+  document.getElementById('m-vendaId').value = vendaId;
+  const v = VD.vendedor;
+  document.getElementById('m-nome').value = v.nome.split(' ')[0] || '';
+  document.getElementById('m-sobrenome').value = v.nome.split(' ').slice(1).join(' ') || '';
+  document.getElementById('m-email').value = v.email || '';
+  document.getElementById('m-cpf').value = v.cpf_cnpj || '';
+  document.getElementById('m-tel').value = v.telefone ? '('+v.telefone.slice(0,2)+') '+v.telefone.slice(2) : '';
+  document.getElementById('modal').style.display = 'flex';
 }
 
-function dueDate(plusDays = 1) {
-  const d = new Date();
-  d.setDate(d.getDate() + plusDays);
-  return d.toISOString().split('T')[0];
-}
-
-// ─── HEALTH CHECK ───────────────────────────────────────────
-app.get('/health', async (_req, res) => {
-  try {
-    const account = await asaasGet('/myAccount');
-    if (account.errors) throw new Error(account.errors[0]?.description);
-    const { count } = await supabase.from('usuarios').select('*', { count: 'exact', head: true });
-    res.json({
-      ok: true,
-      env: IS_SANDBOX ? 'sandbox' : 'production',
-      asaas: 'conectado',
-      conta: account.name || account.tradingName,
-      vendedores: count,
-    });
-  } catch (err) {
-    res.status(503).json({ ok: false, error: err.message });
-  }
-});
-
-// ─── POST /api/pay/card ─────────────────────────────────────
-app.post('/api/pay/card', async (req, res) => {
-  try {
-    const { customer: customerData, amount, installments = 1, card, remoteIp, productName, refId, senha } = req.body;
-
-    if (!customerData || !amount || !card) {
-      return res.status(400).json({ success: false, message: 'Dados incompletos' });
-    }
-
-    const customerId = await getOrCreateCustomer(customerData);
-    const [expMonth, expYear] = (card.expiry || '').split('/');
-
-    const payload = {
-      customer: customerId,
-      billingType: 'CREDIT_CARD',
-      value: parseFloat(amount.toFixed(2)),
-      dueDate: dueDate(1),
-      description: productName || 'TrackingYou Tag+',
-      creditCard: {
-        holderName: card.holderName,
-        number: card.number.replace(/\s/g, ''),
-        expiryMonth: card.expiryMonth || expMonth,
-        expiryYear: card.expiryYear || ('20' + expYear),
-        ccv: card.ccv,
-      },
-      creditCardHolderInfo: {
-        name: customerData.name,
-        email: customerData.email,
-        cpfCnpj: customerData.cpfCnpj.replace(/\D/g, ''),
-        postalCode: customerData.postalCode.replace(/\D/g, ''),
-        addressNumber: customerData.addressNumber,
-        phone: customerData.phone?.replace(/\D/g, ''),
-        mobilePhone: customerData.phone?.replace(/\D/g, ''),
-      },
-      remoteIp: remoteIp || req.ip || '127.0.0.1',
-    };
-
-    if (installments > 1) {
-      payload.installmentCount = parseInt(installments);
-      payload.installmentValue = parseFloat((amount / installments).toFixed(2));
-      payload.value = payload.installmentValue * payload.installmentCount;
-    }
-
-    const payment = await asaasPost('/payments', payload);
-
-    if (payment.errors) {
-      const msg = payment.errors[0]?.description || 'Pagamento não autorizado';
-      return res.status(400).json({ success: false, message: msg, errors: payment.errors });
-    }
-
-    console.log(`[Cartão] ✅ ${payment.id} — status: ${payment.status}`);
-
-    // Se aprovado, registra venda e cadastra vendedor
-    if (payment.status === 'CONFIRMED' || payment.status === 'RECEIVED') {
-      await processarPagamentoConfirmado(payment.id, customerData, amount, refId, payment.status);
-    } else {
-      // Salva venda como pendente para processar via webhook
-      await supabase.from('vendas').insert({
-        comprador_nome: customerData.name,
-        comprador_email: customerData.email,
-        comprador_telefone: customerData.phone,
-        vendedor_id: refId || 'FL01',
-        valor: amount,
-        status: 'pendente',
-        payment_id: payment.id,
-      });
-    }
-
-    res.json({
-      success: true,
-      paymentId: payment.id,
-      status: payment.status,
-      invoiceUrl: payment.invoiceUrl,
-    });
-
-  } catch (err) {
-    console.error('[Cartão] Exceção:', err.message);
-    res.status(500).json({ success: false, message: 'Erro interno ao processar cartão' });
-  }
-});
-
-// ─── POST /api/pay/pix ──────────────────────────────────────
-app.post('/api/pay/pix', async (req, res) => {
-  try {
-    const { customer: customerData, amount, productName, refId, senha } = req.body;
-
-    if (!customerData || !amount) {
-      return res.status(400).json({ success: false, message: 'Dados incompletos' });
-    }
-
-    if (senha) customerData.senha = senha;
-    const customerId = await getOrCreateCustomer(customerData);
-
-    const payment = await asaasPost('/payments', {
-      customer: customerId,
-      billingType: 'PIX',
-      value: parseFloat(amount.toFixed(2)),
-      dueDate: dueDate(1),
-      description: productName || 'TrackingYou Tag+',
-    });
-
-    if (payment.errors) {
-      const msg = payment.errors[0]?.description || 'Erro ao gerar PIX';
-      return res.status(400).json({ success: false, message: msg });
-    }
-
-    // Salva venda pendente
-    await supabase.from('vendas').insert({
-      comprador_nome: customerData.name,
-      comprador_email: customerData.email,
-      comprador_telefone: customerData.phone,
-      vendedor_id: refId || 'FL01',
-      valor: amount,
-      status: 'pendente',
-      payment_id: payment.id,
-    });
-
-    let pixData;
-    for (let i = 0; i < 3; i++) {
-      await new Promise(r => setTimeout(r, 800));
-      pixData = await asaasGet(`/payments/${payment.id}/pixQrCode`);
-      if (pixData.encodedImage) break;
-    }
-
-    if (!pixData?.encodedImage) {
-      return res.status(500).json({ success: false, message: 'QR Code PIX não disponível. Tente novamente.' });
-    }
-
-    console.log(`[PIX] ✅ ${payment.id} — QR gerado`);
-
-    res.json({
-      success: true,
-      paymentId: payment.id,
-      status: payment.status,
-      pixQrCode: pixData.encodedImage,
-      pixCopiaECola: pixData.payload,
-      expirationDate: pixData.expirationDate,
-    });
-
-  } catch (err) {
-    console.error('[PIX] Exceção:', err.message);
-    res.status(500).json({ success: false, message: 'Erro interno ao gerar PIX' });
-  }
-});
-
-// ─── POST /api/pay/boleto ───────────────────────────────────
-app.post('/api/pay/boleto', async (req, res) => {
-  try {
-    const { customer: customerData, amount, productName, refId } = req.body;
-
-    if (!customerData || !amount) {
-      return res.status(400).json({ success: false, message: 'Dados incompletos' });
-    }
-
-    const customerId = await getOrCreateCustomer(customerData);
-
-    const payment = await asaasPost('/payments', {
-      customer: customerId,
-      billingType: 'BOLETO',
-      value: parseFloat(amount.toFixed(2)),
-      dueDate: dueDate(3),
-      description: productName || 'TrackingYou Tag+',
-    });
-
-    if (payment.errors) {
-      const msg = payment.errors[0]?.description || 'Erro ao gerar boleto';
-      return res.status(400).json({ success: false, message: msg });
-    }
-
-    // Salva venda pendente
-    await supabase.from('vendas').insert({
-      comprador_nome: customerData.name,
-      comprador_email: customerData.email,
-      comprador_telefone: customerData.phone,
-      vendedor_id: refId || 'FL01',
-      valor: amount,
-      status: 'pendente',
-      payment_id: payment.id,
-    });
-
-    console.log(`[Boleto] ✅ ${payment.id}`);
-
-    res.json({
-      success: true,
-      paymentId: payment.id,
-      status: payment.status,
-      invoiceUrl: payment.invoiceUrl,
-      bankSlipUrl: payment.bankSlipUrl,
-    });
-
-  } catch (err) {
-    console.error('[Boleto] Exceção:', err.message);
-    res.status(500).json({ success: false, message: 'Erro interno ao gerar boleto' });
-  }
-});
-
-// ─── GET /api/pay/status/:id ────────────────────────────────
-app.get('/api/pay/status/:paymentId', async (req, res) => {
-  try {
-    const data = await asaasGet(`/payments/${req.params.paymentId}`);
-    if (data.errors) return res.status(404).json({ message: 'Pagamento não encontrado' });
-    res.json({
-      paymentId: data.id,
-      status: data.status,
-      value: data.value,
-      billingType: data.billingType,
-      dueDate: data.dueDate,
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ─── PROCESSA PAGAMENTO CONFIRMADO ──────────────────────────
-async function processarPagamentoConfirmado(paymentId, customerData, valor, refId, status) {
-  try {
-    // Atualiza venda
-    const { data: venda } = await supabase
-      .from('vendas')
-      .update({ status: 'pago' })
-      .eq('payment_id', paymentId)
-      .select()
-      .single();
-
-    let vendaId = venda?.id;
-    let vendedorId = venda?.vendedor_id || refId || 'FL01';
-
-    if (!vendaId) {
-      // Cria venda se não existir
-      const { data: novaVenda } = await supabase.from('vendas').insert({
-        comprador_nome: customerData?.name,
-        comprador_email: customerData?.email,
-        comprador_telefone: customerData?.phone,
-        vendedor_id: refId || 'FL01',
-        valor: valor,
-        status: 'pago',
-        payment_id: paymentId,
-      }).select().single();
-      vendaId = novaVenda?.id;
-      vendedorId = refId || 'FL01';
-    }
-
-    // Cadastra comprador como novo vendedor
-    if (customerData) {
-      const novoVendedor = await cadastrarVendedor({
-        nome: customerData.name,
-        email: customerData.email,
-        telefone: customerData.phone,
-        cpfCnpj: customerData.cpfCnpj,
-        senha: customerData.senha,
-      }, vendedorId);
-
-
-      if (novoVendedor) {
-        const link = `https://trackingyouclub-gif.github.io/trackingyou-frontend?ref=${novoVendedor.id}`;
-        const msg = `🎉 Parabéns ${novoVendedor.nome.split(' ')[0]}! Sua compra TrackingYou foi confirmada!\n\n` +
-          `Você agora é um vendedor TrackingYou! 🚀\n\n` +
-          `Seu link exclusivo de indicação:\n${link}\n\n` +
-          `Compartilhe e ganhe 20% de comissão em cada venda! 💰\n\n` +
-          `Acesse seu painel:\nhttps://trackingyouclub-gif.github.io/trackingyou-frontend/painel?id=${novoVendedor.id}`;
-
-        await enviarWhatsApp(customerData.phone || novoVendedor.telefone, msg, {...novoVendedor, link});
-      }
-    }
-
-    // Processa comissões
-    if (vendaId) await processarComissoes(vendaId, vendedorId, valor);
-// Baixa estoque
-    await baixarEstoque(vendaId, 1);
-
-    console.log(`✅ Pagamento ${paymentId} processado completamente`);
-  } catch (err) {
-    console.error('[ProcessarPagamento] Erro:', err.message);
+async function excluirPedido(pedidoId){
+  if(!confirm('Tem certeza que deseja excluir este pedido pendente? Essa acao nao pode ser desfeita.')) return;
+  const cont = document.getElementById('pedidos-list');
+  try{
+    const r = await fetch(B+'/api/partner/'+ID+'/pedidos/'+pedidoId, {method:'DELETE'});
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error || 'Erro ao excluir pedido');
+    carregarPedidos();
+  }catch(e){
+    alert('Erro ao excluir pedido: '+e.message);
   }
 }
 
-// ─── WEBHOOK ASAAS ──────────────────────────────────────────
-app.post('/webhook/asaas', async (req, res) => {
-  if (WEBHOOK_TOKEN) {
-    const incomingToken = req.headers['asaas-access-token'] || req.headers['authorization'];
-    if (incomingToken !== WEBHOOK_TOKEN) {
-      console.warn('[Webhook] Token inválido');
-      return res.status(401).send('Unauthorized');
-    }
-  }
-
-  const { event, payment } = req.body;
-  console.log(`[Webhook] ${event} — payment: ${payment?.id}`);
-
-  if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') {
-    await processarPagamentoConfirmado(payment.id, null, payment.value, null, event);
-  }
-
-  res.status(200).send('OK');
-});
-
-// ─── API MLM ────────────────────────────────────────────────
-
-// GET /api/vendedor/:id — dados do vendedor
-app.get('/api/vendedor/:id', async (req, res) => {
-  try {
-    const { data: vendedor, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('id', req.params.id)
-      .single();
-
-    if (error || !vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
-
-    // Total de vendas
-    const { data: vendas } = await supabase
-      .from('vendas')
-      .select('*')
-      .eq('vendedor_id', req.params.id);
-
-    // Comissões
-    const { data: comissoes } = await supabase
-      .from('comissoes')
-      .select('*')
-      .eq('beneficiario_id', req.params.id);
-
-    const saldoDisponivel = comissoes
-      ?.filter(c => c.status === 'pendente')
-      .reduce((sum, c) => sum + parseFloat(c.valor), 0) || 0;
-
-    const saldoSacado = comissoes
-      ?.filter(c => c.status === 'pago')
-      .reduce((sum, c) => sum + parseFloat(c.valor), 0) || 0;
-
-    // Rede direta
-    const { data: rede } = await supabase
-      .from('usuarios')
-      .select('id, nome, email, data_cadastro, nivel')
-      .eq('ref_id', req.params.id);
-
-    res.json({
-      vendedor,
-      stats: {
-        totalVendas: vendas?.length || 0,
-        valorTotalVendas: vendas?.reduce((s, v) => s + parseFloat(v.valor), 0) || 0,
-        saldoDisponivel: parseFloat(saldoDisponivel.toFixed(2)),
-        saldoSacado: parseFloat(saldoSacado.toFixed(2)),
-        totalIndicados: rede?.length || 0,
-      },
-      comissoes: comissoes || [],
-      rede: rede || [],
-      link: `https://trackingyouclub-gif.github.io/trackingyou-frontend?ref=${req.params.id}`,
-    });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/partner/:id/pedidos — pedidos feitos pelo proprio partner (compras dele)
-app.get('/api/partner/:id/pedidos', async (req, res) => {
-  try {
-    const { data: vendedor } = await supabase.from('usuarios').select('email').eq('id', req.params.id).single();
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor nao encontrado' });
-    const { data: pedidos } = await supabase
-      .from('vendas')
-      .select('*')
-      .eq('comprador_email', vendedor.email)
-      .order('data_venda', { ascending: false });
-    res.json(pedidos || []);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// DELETE /api/partner/:id/pedidos/:pedidoId — exclui pedido pendente do proprio partner
-app.delete('/api/partner/:id/pedidos/:pedidoId', async (req, res) => {
-  try {
-    const { data: vendedor } = await supabase.from('usuarios').select('email').eq('id', req.params.id).single();
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor nao encontrado' });
-
-    const { data: pedido } = await supabase
-      .from('vendas')
-      .select('*')
-      .eq('id', req.params.pedidoId)
-      .single();
-
-    if (!pedido) return res.status(404).json({ error: 'Pedido nao encontrado' });
-    if (pedido.comprador_email !== vendedor.email) {
-      return res.status(403).json({ error: 'Este pedido nao pertence a este vendedor' });
-    }
-    if (pedido.status !== 'pendente') {
-      return res.status(400).json({ error: 'Apenas pedidos pendentes podem ser excluidos' });
-    }
-
-    const { data: deletado, error } = await supabase
-      .from('vendas')
-      .delete()
-      .eq('id', req.params.pedidoId)
-      .select();
-
-    if (error) throw error;
-
-    if (!deletado || deletado.length === 0) {
-      console.error(`[ExcluirPedido] Delete retornou 0 linhas afetadas para pedido ${req.params.pedidoId}. Possivel bloqueio de RLS no Supabase.`);
-      return res.status(500).json({ error: 'Nao foi possivel excluir o pedido. Verifique as politicas de seguranca (RLS) da tabela vendas no Supabase.' });
-    }
-
-    res.json({ ok: true, mensagem: 'Pedido excluido com sucesso' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/rede/:id — árvore completa da rede
-app.get('/api/rede/:id', async (req, res) => {
-  try {
-    async function buildTree(id, depth = 0) {
-      if (depth > 4) return null;
-      const { data: usuario } = await supabase.from('usuarios').select('*').eq('id', id).single();
-      if (!usuario) return null;
-      const { data: filhos } = await supabase.from('usuarios').select('id').eq('ref_id', id);
-      const children = [];
-      for (const filho of (filhos || [])) {
-        const child = await buildTree(filho.id, depth + 1);
-        if (child) children.push(child);
-      }
-      return { ...usuario, children };
-    }
-
-    const tree = await buildTree(req.params.id);
-    res.json(tree);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ─── HELPERS SAQUE AUTOMÁTICO VIA PIX ────────────────────────
-
-// Detecta o tipo de chave Pix a partir do formato do valor informado.
-function detectarTipoChavePix(chave) {
-  const limpa = chave.replace(/\D/g, '');
-  if (/^[\w.+-]+@[\w-]+\.[\w.-]+$/.test(chave)) return 'EMAIL';
-  if (limpa.length === 11 && !chave.includes('@')) return 'CPF';
-  if (limpa.length === 14) return 'CNPJ';
-  if (limpa.length >= 10 && limpa.length <= 13 && /^\+?\d+$/.test(chave.replace(/[\s()-]/g, ''))) return 'PHONE';
-  // Chave aleatória (EVP): formato UUID
-  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(chave)) return 'EVP';
-  return null;
-}
-
-// Compara o CPF/CNPJ mascarado retornado pelo Asaas (ex: "*****.202.745-****" ou "***.202.745-**")
-// com o CPF/CNPJ real cadastrado do vendedor. Extrai apenas os dígitos visíveis (ignorando
-// pontuação e asteriscos) e confirma que aparecem, na mesma posição relativa, dentro do CPF/CNPJ real.
-// IMPORTANTE: este formato de máscara deve ser confirmado com uma consulta real à API antes
-// de confiar 100% nesta validação em produção — o formato exato pode variar.
-function cpfCnpjMascaradoCoincide(mascarado, cpfCnpjReal) {
-  if (!mascarado || !cpfCnpjReal) return false;
-  const realLimpo = cpfCnpjReal.replace(/\D/g, '');
-
-  // Mantém apenas dígitos e asteriscos, na ordem em que aparecem (remove pontos, barra, traço).
-  const seqMascarada = mascarado.replace(/[^\d*]/g, '');
-
-  // Os dígitos visíveis (não-asterisco) precisam aparecer, na mesma posição relativa,
-  // dentro do CPF/CNPJ real. Tenta encontrar o deslocamento correto comparando os
-  // dígitos visíveis como uma sub-sequência ordenada do CPF/CNPJ real.
-  const digitosVisiveis = [];
-  for (let i = 0; i < seqMascarada.length; i++) {
-    if (seqMascarada[i] !== '*') digitosVisiveis.push({ pos: i, valor: seqMascarada[i] });
-  }
-  if (!digitosVisiveis.length) return false;
-
-  // Se o comprimento da sequência mascarada coincide com o do CPF/CNPJ real, compara direto por posição.
-  if (seqMascarada.length === realLimpo.length) {
-    return digitosVisiveis.every(d => realLimpo[d.pos] === d.valor);
-  }
-
-  // Caso os comprimentos não coincidam (formato de máscara inesperado), faz uma validação
-  // mais permissiva: confirma que a sequência de dígitos visíveis aparece, em ordem, dentro do
-  // CPF/CNPJ real (como substring não-contígua respeitando a ordem).
-  const apenasDigitosVisiveis = digitosVisiveis.map(d => d.valor).join('');
-  let idx = 0;
-  for (const ch of realLimpo) {
-    if (ch === apenasDigitosVisiveis[idx]) idx++;
-    if (idx === apenasDigitosVisiveis.length) break;
-  }
-  return idx === apenasDigitosVisiveis.length;
-}
-
-// Consulta a titularidade de uma chave Pix no Asaas e valida que pertence ao vendedor informado.
-async function validarChavePixDoVendedor(pixKey, vendedor) {
-  const tipo = detectarTipoChavePix(pixKey);
-  if (!tipo) {
-    return { valido: false, motivo: 'Formato de chave Pix não reconhecido (use CPF, CNPJ, e-mail, telefone ou chave aleatória).' };
-  }
-
-  const consulta = await asaasGet(`/pix/addressKeys/external?type=${tipo}&key=${encodeURIComponent(pixKey)}`);
-
-  if (!consulta || consulta.errors) {
-    return { valido: false, motivo: 'Não foi possível verificar a titularidade desta chave Pix.' };
-  }
-
-  // Estrutura real confirmada: o CPF/CNPJ do titular vem em consulta.owner.cpfCnpj.
-  // Pode vir mascarado (ex: pessoa física) ou completo (confirmado para CNPJ).
-  const cpfCnpjTitular = consulta.owner?.cpfCnpj || consulta.cpfCnpj || consulta.ownerData?.cpfCnpj;
-  if (!cpfCnpjTitular) {
-    return { valido: false, motivo: 'Não foi possível confirmar o titular desta chave Pix.' };
-  }
-
-  if (!cpfCnpjMascaradoCoincide(cpfCnpjTitular, vendedor.cpf_cnpj)) {
-    return { valido: false, motivo: 'A chave Pix informada não pertence ao CPF/CNPJ cadastrado nesta conta.' };
-  }
-
-  return { valido: true, tipo };
-}
-
-// Executa a transferência Pix real, debitando o saldo da conta Asaas.
-async function executarTransferenciaPix(pixKey, tipo, valor, descricao) {
-  return await asaasPost('/transfers', {
-    value: parseFloat(valor.toFixed(2)),
-    operationType: 'PIX',
-    pixAddressKey: pixKey,
-    pixAddressKeyType: tipo,
-    description: descricao,
-  });
-}
-
-// POST /api/saque — solicitar saque
-// POST /api/saque — solicitar saque MANUAL (sempre aguarda aprovação humana no admin)
-app.post('/api/saque', async (req, res) => {
-  try {
-    const { vendedorId, pixKey } = req.body;
-
-    const { data: vendedor } = await supabase.from('usuarios').select('*').eq('id', vendedorId).single();
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
-
-    // Calcula saldo disponível
-    const { data: comissoes } = await supabase
-      .from('comissoes')
-      .select('valor')
-      .eq('beneficiario_id', vendedorId)
-      .eq('status', 'pendente');
-
-    const saldo = comissoes?.reduce((s, c) => s + parseFloat(c.valor), 0) || 0;
-
-    if (saldo < 50) {
-      return res.status(400).json({ error: `Saldo mínimo para saque é R$ 50,00. Seu saldo: R$ ${saldo.toFixed(2)}` });
-    }
-
-    const { data: saque, error } = await supabase.from('saques').insert({
-      vendedor_id: vendedorId,
-      valor: parseFloat(saldo.toFixed(2)),
-      pix_key: pixKey,
-      status: 'solicitado',
-    }).select().single();
-
-    if (error) throw error;
-
-    // Notifica Flavio via WhatsApp
-    await enviarWhatsApp('11963166971',
-      `💸 Solicitação de saque (manual)!\n\nVendedor: ${vendedor.nome}\nValor: R$ ${saldo.toFixed(2)}\nPIX: ${pixKey}\n\nAcesse o painel admin para aprovar.`
-    );
-
-    res.json({ success: true, saque, mensagem: `Saque de R$ ${saldo.toFixed(2)} solicitado com sucesso! Aguarde a aprovação.` });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/saque/automatico — solicitar saque AUTOMÁTICO (valida titularidade e transfere via API)
-app.post('/api/saque/automatico', async (req, res) => {
-  try {
-    const { vendedorId, pixKey } = req.body;
-
-    const { data: vendedor } = await supabase.from('usuarios').select('*').eq('id', vendedorId).single();
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
-
-    // Calcula saldo disponível
-    const { data: comissoes } = await supabase
-      .from('comissoes')
-      .select('valor')
-      .eq('beneficiario_id', vendedorId)
-      .eq('status', 'pendente');
-
-    const saldo = comissoes?.reduce((s, c) => s + parseFloat(c.valor), 0) || 0;
-
-    if (saldo < 50) {
-      return res.status(400).json({ error: `Saldo mínimo para saque é R$ 50,00. Seu saldo: R$ ${saldo.toFixed(2)}` });
-    }
-
-    // Valida se a chave Pix informada pertence ao próprio vendedor antes de qualquer saque.
-    const validacao = await validarChavePixDoVendedor(pixKey, vendedor);
-
-    const { data: saque, error } = await supabase.from('saques').insert({
-      vendedor_id: vendedorId,
-      valor: parseFloat(saldo.toFixed(2)),
-      pix_key: pixKey,
-      status: validacao.valido ? 'processando' : 'solicitado',
-    }).select().single();
-
-    if (error) throw error;
-
-    if (!validacao.valido) {
-      // Chave não pôde ser validada automaticamente: cai no fluxo manual de aprovação.
-      await enviarWhatsApp('11963166971',
-        `💸 Solicitação de saque automático NÃO validada!\n\nVendedor: ${vendedor.nome}\nValor: R$ ${saldo.toFixed(2)}\nPIX: ${pixKey}\nMotivo: ${validacao.motivo}\n\nAcesse o painel admin para revisar manualmente.`
-      );
-      return res.json({ success: true, saque, automatico: false, mensagem: `Saque de R$ ${saldo.toFixed(2)} solicitado! Como a chave Pix não pôde ser validada automaticamente (${validacao.motivo}), ele será revisado manualmente.` });
-    }
-
-    // Chave validada: dispara a transferência Pix real, automaticamente.
-    try {
-      const transferencia = await executarTransferenciaPix(pixKey, validacao.tipo, saldo, `Comissão TrackingYou - ${vendedor.nome}`);
-
-      if (transferencia.errors) {
-        const motivoErro = transferencia.errors[0]?.description || 'Erro desconhecido ao transferir';
-        await supabase.from('saques').update({ status: 'solicitado' }).eq('id', saque.id);
-        await enviarWhatsApp('11963166971',
-          `⚠️ Saque automático FALHOU!\n\nVendedor: ${vendedor.nome}\nValor: R$ ${saldo.toFixed(2)}\nPIX: ${pixKey}\nErro: ${motivoErro}\n\nRevise manualmente no painel admin.`
-        );
-        return res.json({ success: true, saque, automatico: false, mensagem: `Saque solicitado, mas a transferência automática falhou (${motivoErro}). Será revisado manualmente.` });
-      }
-
-      // Transferência disparada com sucesso — marca comissões como pagas e o saque como concluído.
-      await supabase.from('comissoes').update({ status: 'pago' }).eq('beneficiario_id', vendedorId).eq('status', 'pendente');
-      await supabase.from('saques').update({
-        status: 'pago',
-        data_pagamento: new Date().toISOString(),
-        transfer_id: transferencia.id || null,
-      }).eq('id', saque.id);
-
-      await enviarWhatsApp('11963166971',
-        `✅ Saque automático CONCLUÍDO!\n\nVendedor: ${vendedor.nome}\nValor: R$ ${saldo.toFixed(2)}\nPIX: ${pixKey}`
-      );
-
-      return res.json({ success: true, saque, automatico: true, mensagem: `Saque de R$ ${saldo.toFixed(2)} enviado automaticamente via Pix!` });
-
-    } catch (errTransfer) {
-      console.error('[Saque automático] Exceção:', errTransfer.message);
-      await supabase.from('saques').update({ status: 'solicitado' }).eq('id', saque.id);
-      await enviarWhatsApp('11963166971',
-        `⚠️ Erro inesperado no saque automático!\n\nVendedor: ${vendedor.nome}\nValor: R$ ${saldo.toFixed(2)}\nPIX: ${pixKey}\n\nRevise manualmente no painel admin.`
-      );
-      return res.json({ success: true, saque, automatico: false, mensagem: `Saque solicitado, mas houve um erro técnico na transferência automática. Será revisado manualmente.` });
-    }
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/admin/saques — lista saques pendentes (para Flavio)
-app.get('/api/admin/saques', async (req, res) => {
-  try {
-    const { data } = await supabase
-      .from('saques')
-      .select('*, usuarios(nome, email, telefone)')
-      .order('data_solicitacao', { ascending: false });
-    res.json(data || []);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ─── AUTH ────────────────────────────────────────────────────
-
-// POST /api/auth/login
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { cpfCnpj, senha } = req.body;
-    if (!cpfCnpj || !senha) return res.status(400).json({ error: 'CPF/CNPJ e senha obrigatorios' });
-
-    const cpf = cpfCnpj.replace(/\D/g, '');
-    const { data: usuario } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('cpf_cnpj', cpfCnpj)
-      .single();
-
-    if (!usuario) return res.status(401).json({ error: 'CPF/CNPJ ou senha incorretos' });
-    if (!usuario.senha_hash) return res.status(401).json({ error: 'Senha nao cadastrada. Contate o suporte.' });
-
-    const senhaOk = await bcrypt.compare(senha, usuario.senha_hash);
-    if (!senhaOk) return res.status(401).json({ error: 'CPF/CNPJ ou senha incorretos' });
-
-    res.json({ ok: true, id: usuario.id, nome: usuario.nome, email: usuario.email });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/auth/definir-senha (chamado após primeira compra)
-app.post('/api/auth/definir-senha', async (req, res) => {
-  try {
-    const { vendedorId, senha } = req.body;
-    if (!vendedorId || !senha) return res.status(400).json({ error: 'Dados incompletos' });
-    if (senha.length < 6) return res.status(400).json({ error: 'Senha deve ter pelo menos 6 caracteres' });
-
-    const hash = await bcrypt.hash(senha, 10);
-    const { error } = await supabase
-      .from('usuarios')
-      .update({ senha_hash: hash })
-      .eq('id', vendedorId);
-
-    if (error) throw error;
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/auth/esqueci-senha
-app.post('/api/auth/esqueci-senha', async (req, res) => {
-  try {
-    const { cpfCnpj } = req.body;
-    if (!cpfCnpj) return res.status(400).json({ error: 'Informe o CPF/CNPJ' });
-    const cpfLimpo = cpfCnpj.replace(/\D/g, '');
-    const { data: todosUsuarios } = await supabase.from('usuarios').select('*');
-    const usuario = (todosUsuarios || []).find(u => (u.cpf_cnpj || '').replace(/\D/g, '') === cpfLimpo);
-
-    if (!usuario) return res.status(404).json({ error: 'CPF/CNPJ nao encontrado' });
-
-    const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    const expiry = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hora
-
-    await supabase.from('usuarios').update({
-      reset_token: token,
-      reset_token_expiry: expiry
-    }).eq('id', usuario.id);
-
-    const link = `https://trackingyouclub-gif.github.io/trackingyou-frontend/painel.html?reset=${token}`;
-
-    await resend.emails.send({
-      from: 'TrackingYou <onboarding@resend.dev>',
-      to: usuario.email,
-      subject: 'Redefinir senha — TrackingYou',
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:2rem;background:#080c14;color:#f0f4ff;border-radius:12px">
-          <h2 style="color:#60a5fa">TrackingYou</h2>
-          <p>Olá, <strong>${usuario.nome.split(' ')[0]}</strong>!</p>
-          <p>Recebemos uma solicitação para redefinir sua senha.</p>
-          <a href="${link}" style="display:inline-block;background:#3b82f6;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin:1rem 0">Redefinir minha senha</a>
-          <p style="color:#7f8ea8;font-size:0.85rem">Este link expira em 1 hora. Se não foi você, ignore este email.</p>
-          <p style="color:#7f8ea8;font-size:0.85rem">ID do vendedor: ${usuario.id}</p>
-        </div>
-      `
-    });
-
-    const emailMascarado = usuario.email.replace(/^(.{2}).*(@.*)$/, '$1****$2');
-res.json({ ok: true, mensagem: 'Email de recuperacao enviado!', emailMascarado });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/auth/resetar-senha
-app.post('/api/auth/resetar-senha', async (req, res) => {
-  try {
-    const { token, novaSenha } = req.body;
-    if (!token || !novaSenha) return res.status(400).json({ error: 'Dados incompletos' });
-    if (novaSenha.length < 6) return res.status(400).json({ error: 'Senha deve ter pelo menos 6 caracteres' });
-
-    const { data: usuario } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('reset_token', token)
-      .single();
-
-    if (!usuario) return res.status(400).json({ error: 'Token invalido' });
-    if (new Date(usuario.reset_token_expiry) < new Date()) return res.status(400).json({ error: 'Token expirado. Solicite novo link.' });
-
-    const hash = await bcrypt.hash(novaSenha, 10);
-    await supabase.from('usuarios').update({
-      senha_hash: hash,
-      reset_token: null,
-      reset_token_expiry: null
-    }).eq('id', usuario.id);
-
-    res.json({ ok: true, mensagem: 'Senha redefinida com sucesso!' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ─── ADMIN: editar vendedor ──────────────────────────────────
-app.post('/api/admin/vendedor/:id/editar', async (req, res) => {
-  try {
-    const { email, novaSenha } = req.body;
-    const update = {};
-    if (email) update.email = email;
-    if (novaSenha) {
-      if (novaSenha.length < 6) return res.status(400).json({ error: 'Senha deve ter pelo menos 6 caracteres' });
-      update.senha_hash = await bcrypt.hash(novaSenha, 10);
-    }
-    if (!Object.keys(update).length) return res.status(400).json({ error: 'Nada para atualizar' });
-    const { error } = await supabase.from('usuarios').update(update).eq('id', req.params.id);
-    if (error) throw error;
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-// ─── START v3 ──────────────────────────────────────────────────
-// ─── ADMIN ROUTES ───────────────────────────────────────────
-
-app.get('/api/admin/vendas', async (req, res) => {
-  try {
-    const { data } = await supabase.from('vendas').select('*').order('data_venda', { ascending: false });
-    res.json(data || []);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.get('/api/admin/usuarios', async (req, res) => {
-  try {
-    const { data: usuarios } = await supabase.from('usuarios').select('*').order('data_cadastro', { ascending: false });
-    const result = await Promise.all((usuarios || []).map(async u => {
-      const { data: vendas } = await supabase.from('vendas').select('valor').eq('vendedor_id', u.id).eq('status', 'pago');
-      const { data: comissoes } = await supabase.from('comissoes').select('valor').eq('beneficiario_id', u.id).eq('status', 'pendente');
-      return { ...u, total_vendas: vendas?.length || 0, total_comissoes: comissoes?.reduce((s, c) => s + parseFloat(c.valor), 0) || 0 };
-    }));
-    res.json(result);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.get('/api/admin/comissoes', async (req, res) => {
-  try {
-    const status = req.query.status || 'pendente';
-    const { data } = await supabase.from('comissoes').select('*').eq('status', status).order('data_criacao', { ascending: false });
-    res.json(data || []);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/admin/comissao/:id/pagar', async (req, res) => {
-  try {
-    const { error } = await supabase.from('comissoes').update({ status: 'pago' }).eq('id', req.params.id);
-    if (error) throw error;
-    res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/admin/saque/:id/aprovar', async (req, res) => {
-  try {
-    const { data: saque } = await supabase.from('saques').select('*').eq('id', req.params.id).single();
-    await supabase.from('saques').update({ status: 'pago', data_pagamento: new Date().toISOString() }).eq('id', req.params.id);
-    await supabase.from('comissoes').update({ status: 'pago' }).eq('beneficiario_id', saque.vendedor_id).eq('status', 'pendente');
-    res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/admin/saque/:id/recusar', async (req, res) => {
-  try {
-    await supabase.from('saques').update({ status: 'recusado' }).eq('id', req.params.id);
-    res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// ─── ESTOQUE ────────────────────────────────────────────────
-
-async function getEstoque() {
-  const { data } = await supabase.from('estoque').select('*').single();
-  return data;
-}
-
-async function baixarEstoque(vendaId, quantidade) {
-  try {
-    const estoque = await getEstoque();
-    if (!estoque) return;
-    const novaQtd = estoque.quantidade - quantidade;
-    await supabase.from('estoque').update({
-      quantidade: Math.max(0, novaQtd),
-      atualizado_em: new Date().toISOString()
-    }).eq('id', estoque.id);
-    await supabase.from('estoque_movimentos').insert({
-      tipo: 'saida',
-      quantidade,
-      motivo: 'Venda confirmada',
-      venda_id: vendaId,
-    });
-    console.log(`[Estoque] Baixa de ${quantidade} unidade(s). Restante: ${Math.max(0, novaQtd)}`);
-  } catch (err) {
-    console.error('[Estoque] Erro ao baixar:', err.message);
-  }
-}
-
-// GET /api/estoque
-app.get('/api/estoque', async (req, res) => {
-  try {
-    const estoque = await getEstoque();
-    const { data: movimentos } = await supabase
-      .from('estoque_movimentos')
-      .select('*')
-      .order('criado_em', { ascending: false })
-      .limit(20);
-    res.json({ estoque, movimentos: movimentos || [] });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// POST /api/admin/estoque/entrada
-app.post('/api/admin/estoque/entrada', async (req, res) => {
-  try {
-    const { quantidade, motivo } = req.body;
-    if (!quantidade || quantidade <= 0) return res.status(400).json({ error: 'Quantidade invalida' });
-    const estoque = await getEstoque();
-    const novaQtd = estoque.quantidade + parseInt(quantidade);
-    await supabase.from('estoque').update({
-      quantidade: novaQtd,
-      atualizado_em: new Date().toISOString()
-    }).eq('id', estoque.id);
-    await supabase.from('estoque_movimentos').insert({
-      tipo: 'entrada',
-      quantidade: parseInt(quantidade),
-      motivo: motivo || 'Entrada manual',
-    });
-    console.log(`[Estoque] Entrada de ${quantidade} unidade(s). Total: ${novaQtd}`);
-    res.json({ ok: true, quantidade: novaQtd });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// POST /api/admin/estoque/saida
-app.post('/api/admin/estoque/saida', async (req, res) => {
-  try {
-    const { quantidade, motivo } = req.body;
-    if (!quantidade || quantidade <= 0) return res.status(400).json({ error: 'Quantidade invalida' });
-    const estoque = await getEstoque();
-    const novaQtd = Math.max(0, estoque.quantidade - parseInt(quantidade));
-    await supabase.from('estoque').update({ quantidade: novaQtd, atualizado_em: new Date().toISOString() }).eq('id', estoque.id);
-    await supabase.from('estoque_movimentos').insert({ tipo: 'saida', quantidade: parseInt(quantidade), motivo: motivo || 'Remocao manual' });
-    res.json({ ok: true, quantidade: novaQtd });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// ─── JOB: CANCELA PEDIDOS PENDENTES > 24H ───────────────────
-async function cancelarPedidosExpirados() {
-  try {
-    const limite = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { data, error } = await supabase
-      .from('vendas')
-      .update({ status: 'cancelado' })
-      .eq('status', 'pendente')
-      .lt('data_venda', limite)
-      .select();
-    if (data && data.length > 0) {
-      console.log(`[Job] ${data.length} pedidos cancelados por expiracao`);
-    }
-  } catch (err) {
-    console.error('[Job] Erro ao cancelar pedidos:', err.message);
-  }
-}
-
-// Roda a cada hora
-setInterval(cancelarPedidosExpirados, 60 * 60 * 1000);
-// Roda imediatamente ao iniciar
-cancelarPedidosExpirados();
-
-// ─── FRETE MELHOR ENVIO ──────────────────────────────────────
-app.post('/api/frete/calcular', async (req, res) => {
-  try {
-    const { cep } = req.body;
-    if (!cep || cep.replace(/\D/g,'').length !== 8) return res.status(400).json({ error: 'CEP invalido' });
-    const env = process.env.MELHORENVIO_ENV === 'sandbox' ? 'sandbox.melhorenvio.com.br' : 'melhorenvio.com.br';
-    const r = await fetch(`https://${env}/api/v2/me/shipment/calculate`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${process.env.MELHORENVIO_TOKEN}`, 'Content-Type': 'application/json', 'Accept': 'application/json', 'User-Agent': 'TrackingYou fmatesz@gmail.com' },
-      body: JSON.stringify({ from: { postal_code: '03732160' }, to: { postal_code: cep.replace(/\D/g,'') }, package: { height: 5, width: 15, length: 15, weight: 0.15 }, options: { insurance_value: 299.90, receipt: false, own_hand: false }, services: '1,2' })
-    });
-    const data = await r.json();
-    const opcoes = Array.isArray(data) ? data.filter(s => !s.error && s.price).map(s => ({ id: s.id, nome: s.name, empresa: s.company.name, preco: parseFloat(s.price), prazo: s.delivery_time + ' dias uteis' })) : [];
-    res.json({ opcoes });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('\n════════════════════════════════════════');
-  console.log(`  🚀 TrackingYou Backend`);
-  console.log(`  📡 http://localhost:${PORT}`);
-  console.log(`  🌍 Ambiente: ${IS_SANDBOX ? '🧪 SANDBOX' : '🚀 PRODUÇÃO'}`);
-  console.log(`  🔑 Chave: ${ASAAS_KEY ? ASAAS_KEY.slice(0, 12) + '...' : 'NÃO CONFIGURADA'}`);
-  console.log(`  🗄️  Supabase: ${process.env.SUPABASE_URL ? '✅' : '❌'}`);
-  console.log('════════════════════════════════════════');
-  console.log(`  GET  /health                → status`);
-  console.log(`  POST /api/pay/card          → cartão`);
-  console.log(`  POST /api/pay/pix           → PIX`);
-  console.log(`  POST /api/pay/boleto        → boleto`);
-  console.log(`  GET  /api/vendedor/:id      → painel vendedor`);
-  console.log(`  GET  /api/rede/:id          → árvore MLM`);
-  console.log(`  POST /api/saque             → solicitar saque`);
-  console.log(`  POST /webhook/asaas         → webhook`);
-  console.log('════════════════════════════════════════\n');
-});
+init();
+</script>
+</body>
+</html>
