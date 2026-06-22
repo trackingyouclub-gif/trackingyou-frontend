@@ -307,7 +307,8 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
         <div class="sdisplay">
           <div style="font-size:.78rem;color:var(--muted);margin-bottom:.25rem">Saldo para saque</div>
           <div class="sval2" id="ss2">R$ 0,00</div>
-          <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Minimo: R$ 50,00</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Minimo: R$ 100,00 &middot; Taxa de saque: R$ 10,00</div>
+          <div style="font-size:.78rem;color:var(--blue-bright);margin-top:6px" id="ss2-liquido"></div>
         </div>
         <div class="fg"><label>Chave PIX</label><input type="text" id="pix" placeholder="CPF, e-mail ou chave aleatoria"></div>
         <button class="bsaque" id="bsq" onclick="saque()">Solicitar Saque (Manual)</button>
@@ -532,7 +533,13 @@ function render(d){
   document.getElementById('sv').textContent=s.totalVendas;
   document.getElementById('si').textContent=s.totalIndicados;
   document.getElementById('ss2').textContent=f(s.saldoDisponivel);
-  if(s.saldoDisponivel<50){document.getElementById('bsq').disabled=true;document.getElementById('bsqAuto').disabled=true;}
+  const SAQUE_MINIMO=100,SAQUE_TAXA=10;
+  if(s.saldoDisponivel>=SAQUE_MINIMO){
+    document.getElementById('ss2-liquido').textContent='Valor liquido estimado: '+f(s.saldoDisponivel-SAQUE_TAXA);
+  }else{
+    document.getElementById('ss2-liquido').textContent='';
+  }
+  if(s.saldoDisponivel<SAQUE_MINIMO){document.getElementById('bsq').disabled=true;document.getElementById('bsqAuto').disabled=true;}
   if(c&&c.length>0){
     document.getElementById('lc').innerHTML=c.slice(0,10).map(x=>
       '<div class="ci"><div><div>Nivel '+x.nivel+' - '+x.percentual+'%</div><div class="cin">'+new Date(x.data_criacao).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+x.status+'">'+x.status+'</span><span class="civ">'+f(x.valor)+'</span></div></div>'
