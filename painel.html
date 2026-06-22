@@ -318,6 +318,11 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
       <button class="btn big" onclick="comprar()">Comprar agora</button>
     </div>
 
+    <div class="card">
+      <h2>Vendas Geradas pelo Meu Link</h2>
+      <div id="vendas-geradas-list"><div class="empty">Carregando vendas...</div></div>
+    </div>
+
     
     <div class="card">
       <h2>Meus Pedidos</h2>
@@ -498,7 +503,25 @@ function render(d){
       '<div class="ci"><div><div>Nivel '+x.nivel+' - '+x.percentual+'%</div><div class="cin">'+new Date(x.data_criacao).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+x.status+'">'+x.status+'</span><span class="civ">'+f(x.valor)+'</span></div></div>'
     ).join('');
   }
+  renderVendasGeradas(d.vendasGeradas||[]);
   show();
+}
+
+function mascararEmail(email){
+  if(!email||!email.includes('@'))return email||'';
+  const [user,dominio]=email.split('@');
+  if(user.length<=2)return user[0]+'***@'+dominio;
+  return user.slice(0,2)+'***@'+dominio;
+}
+
+function renderVendasGeradas(vendas){
+  const cont=document.getElementById('vendas-geradas-list');
+  if(!vendas||!vendas.length){cont.innerHTML='<div class="empty">Nenhuma venda gerada pelo seu link ainda</div>';return;}
+  cont.innerHTML=vendas.map(v=>{
+    const statusClass=v.status==='pago'?'pago':(v.status==='cancelado'?'pendente':'pendente');
+    const statusLabel=v.status==='pago'?'Pago':(v.status==='cancelado'?'Cancelado':'Pendente');
+    return '<div class="ci"><div><div style="font-weight:600">'+(v.comprador_nome||'Comprador')+'</div><div class="cin">'+mascararEmail(v.comprador_email)+' &middot; '+new Date(v.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span><span class="civ">'+f(v.valor)+'</span></div></div>';
+  }).join('');
 }
 
 let REDE_DATA = null;
