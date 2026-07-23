@@ -205,7 +205,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
       </div>
       <div class="fg" style="margin-bottom:.75rem"><label style="color:#666">Nome completo</label><input type="text" id="cort-nome" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px" placeholder="Ex: Rafaela Santos"></div>
       <div class="fg" style="margin-bottom:.75rem"><label style="color:#666">E-mail</label><input type="email" id="cort-email" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px" placeholder="rafaela@email.com"></div>
+      <div class="fg" style="margin-bottom:.75rem"><label style="color:#666">CPF/CNPJ</label><input type="text" id="cort-cpf" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px" placeholder="000.000.000-00"></div>
       <div class="fg" style="margin-bottom:.75rem"><label style="color:#666">Telefone (opcional)</label><input type="text" id="cort-telefone" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px" placeholder="(11) 99999-9999"></div>
+      <div class="fg" style="margin-bottom:.75rem"><label style="color:#666">Senha de acesso (opcional)</label><input type="password" id="cort-senha" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px" placeholder="Minimo 6 caracteres — deixe vazio para acesso so por link"></div>
       <div class="fg" style="margin-bottom:.75rem"><label style="color:#666">Indicado por (ID do upline)</label><input type="text" id="cort-refid" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px" placeholder="FL01" value="FL01"></div>
       <div class="fb" id="fb-cortesia"></div>
       <div class="etiqueta-actions">
@@ -530,7 +532,9 @@ function filtrarAfiliados(q){
 function abrirModalCortesia(){
   document.getElementById('cort-nome').value='';
   document.getElementById('cort-email').value='';
+  document.getElementById('cort-cpf').value='';
   document.getElementById('cort-telefone').value='';
+  document.getElementById('cort-senha').value='';
   document.getElementById('cort-refid').value='FL01';
   const fb=document.getElementById('fb-cortesia');fb.style.display='none';
   document.getElementById('cortesia-modal').style.display='flex';
@@ -541,17 +545,25 @@ function fecharModalCortesia(){
 async function enviarCortesia(){
   const nome=document.getElementById('cort-nome').value.trim();
   const email=document.getElementById('cort-email').value.trim();
+  const cpfCnpj=document.getElementById('cort-cpf').value.trim();
   const telefone=document.getElementById('cort-telefone').value.trim();
+  const senha=document.getElementById('cort-senha').value;
   const refId=document.getElementById('cort-refid').value.trim()||'FL01';
   const fb=document.getElementById('fb-cortesia');
   if(!nome||!email){fb.textContent='Nome e e-mail sao obrigatorios';fb.className='fb error';fb.style.display='block';return;}
+  if(!cpfCnpj){fb.textContent='CPF/CNPJ e obrigatorio';fb.className='fb error';fb.style.display='block';return;}
+  if(senha&&senha.length<6){fb.textContent='Senha deve ter pelo menos 6 caracteres (ou deixe vazio)';fb.className='fb error';fb.style.display='block';return;}
   try{
-    const r=await fetch(B+'/api/admin/vendedor/cortesia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,email,telefone,refId})});
+    const r=await fetch(B+'/api/admin/vendedor/cortesia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,email,cpfCnpj,telefone,senha,refId})});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Erro ao cadastrar');
-    fb.textContent='Afiliado '+d.vendedor.id+' cadastrado com sucesso!';fb.className='fb success';fb.style.display='block';
-    carregarAfiliados();
-    setTimeout(fecharModalCortesia,1200);
+    if(d.jaExistia){
+      fb.textContent=d.mensagem;fb.className='fb error';fb.style.display='block';
+    }else{
+      fb.textContent=d.mensagem||('Afiliado '+d.vendedor.id+' cadastrado com sucesso!');fb.className='fb success';fb.style.display='block';
+      carregarAfiliados();
+      setTimeout(fecharModalCortesia,1500);
+    }
   }catch(e){fb.textContent='Erro: '+e.message;fb.className='fb error';fb.style.display='block';}
 }
 
