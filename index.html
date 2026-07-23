@@ -187,6 +187,20 @@
 
   .asaas-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; opacity: 0.6; font-size: 0.75rem; }
 
+  /* TECH SECTION */
+  .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .tech-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; }
+  .tech-num { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--blue-glow); border: 1px solid var(--blue-border); color: var(--blue-bright); font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 1rem; }
+  .tech-card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .tech-card p { font-size: 0.875rem; color: var(--muted); line-height: 1.65; }
+
+  .usecase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+  .usecase-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; text-align: center; transition: border-color 0.2s, transform 0.2s; }
+  .usecase-card:hover { border-color: var(--blue-border); transform: translateY(-3px); }
+  .usecase-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .usecase-card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .usecase-card p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+
   @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
 
 @media(max-width:768px){
@@ -215,17 +229,17 @@
 <section class="hero">
   <div class="badge">Novo · Tags de Rastreamento</div>
   <h1>Saiba onde estão as pessoas e coisas que <em>você ama</em></h1>
-  <p class="sub">Tags inteligentes com rastreamento em tempo real para veículos, família e objetos. Configure em minutos, monitore para sempre.</p>
+  <p class="sub">Tags inteligentes de rastreamento inteligente para veículos, família e objetos. Sem chip, sem mensalidade de dados. Configure em minutos, monitore para sempre.</p>
   <div class="hero-cta-group">
     
-<a href="#checkout" class="btn-primary">Garantir minha Tag →</a>
+<a href="#checkout" class="btn-primary">Garantir minha TAG+YOU →</a>
     <a href="#como-funciona" class="btn-ghost">Ver como funciona</a>
   </div>
   <div class="stats-bar">
     <div class="stat-item"><div class="stat-num">+12k</div><div class="stat-label">Clientes ativos</div></div>
     <div class="stat-item"><div class="stat-num">99,8%</div><div class="stat-label">Uptime da rede</div></div>
     <div class="stat-item"><div class="stat-num">2 anos</div><div class="stat-label">Bateria da tag</div></div>
-    <div class="stat-item"><div class="stat-num">30s</div><div class="stat-label">Atualização GPS</div></div>
+    <div class="stat-item"><div class="stat-num">R$ 0</div><div class="stat-label">Chip ou mensalidade</div></div>
   </div>
 </section>
 
@@ -236,10 +250,50 @@
     <h2 class="section-title">Rastreamento simples do começo ao fim</h2>
     <p class="section-sub">Da compra ao monitoramento ativo, são apenas 3 passos.</p>
     <div class="steps-grid">
-      <div class="step-card"><div class="step-num">01</div><h3>Compre sua Tag</h3><p>Adquira sua Tag+ e receba em casa rapidamente.</p></div>
-      <div class="step-card"><div class="step-num">02</div><h3>Ative no app</h3><p>Baixe o TrackingYou, escaneie o QR da tag e configure em menos de 2 minutos.</p></div>
-      <div class="step-card"><div class="step-num">03</div><h3>Monitore em tempo real</h3><p>Veja a localização, receba alertas e histórico de rotas no seu celular.</p></div>
+      <div class="step-card"><div class="step-num">01</div><h3>Compre sua TAG+YOU</h3><p>Adquira sua TAG+YOU e receba em casa rapidamente.</p></div>
+      <div class="step-card"><div class="step-num">02</div><h3>Ative no app</h3><p>Baixe o TrackingYou (iOS ou Android), escaneie o QR da tag e configure em menos de 2 minutos.</p></div>
+      <div class="step-card"><div class="step-num">03</div><h3>Acompanhe a localização</h3><p>Veja a última posição, receba alertas e histórico de rotas no seu celular.</p></div>
       <div class="step-card"><div class="step-num">04</div><h3>Compartilhe o acesso</h3><p>Adicione familiares com permissões personalizadas.</p></div>
+    </div>
+
+    <!-- EXPLICACAO TECNICA BLE + FIND MY -->
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-num">📡</div>
+        <h3>Sinal Bluetooth constante</h3>
+        <p>A TAG+YOU emite um identificador único via Bluetooth de baixa energia (BLE) o tempo todo, sem gastar quase nada de bateria — por isso ela dura meses ou até anos com uma única carga.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-num">📱</div>
+        <h3>Detectada pela rede Find My</h3>
+        <p>A TAG+YOU é certificada para usar a rede Find My da Apple. Qualquer iPhone próximo com Bluetooth ativo detecta o sinal automaticamente, sem precisar instalar nenhum aplicativo.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-num">☁️</div>
+        <h3>Localização enviada à nuvem</h3>
+        <p>O iPhone que captou o sinal envia, de forma anônima e criptografada, a localização para nosso sistema — vinculando-a à sua tag, sem identificar quem ajudou a localizar.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-num">🗺️</div>
+        <h3>Painel atualizado</h3>
+        <p>No app TrackingYou (iOS e Android) ou no seu painel, você acompanha a última posição conhecida, histórico de localizações e recebe alertas de movimentação.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ONDE USAR -->
+<section style="background:var(--bg2)">
+  <div class="container">
+    <div class="section-eyebrow">Aplicações</div>
+    <h2 class="section-title">Uma tag, várias formas de proteger o que importa</h2>
+    <p class="section-sub">Pequena, discreta e com bateria de longa duração — ideal para diferentes situações do dia a dia.</p>
+    <div class="usecase-grid">
+      <div class="usecase-card"><div class="usecase-icon">🚗</div><h3>Veículos</h3><p>Backup discreto, escondido no carro, caso o rastreador principal seja localizado e desativado.</p></div>
+      <div class="usecase-card"><div class="usecase-icon">🏍️</div><h3>Motos</h3><p>Pequena e fácil de esconder — muito usada por quem tem moto, item de alto risco de furto.</p></div>
+      <div class="usecase-card"><div class="usecase-icon">🎒</div><h3>Objetos</h3><p>Mochilas, malas e equipamentos — saiba se foram esquecidos ou estão fora do lugar.</p></div>
+      <div class="usecase-card"><div class="usecase-icon">🐶</div><h3>Pets</h3><p>Na coleira do seu cão ou gato, para ajudar a localizá-lo caso fuja ou se perca.</p></div>
+      <div class="usecase-card"><div class="usecase-icon">📦</div><h3>Logística leve</h3><p>Caixas, mercadorias e entregas urbanas que circulam por áreas de grande movimento.</p></div>
     </div>
   </div>
 </section>
@@ -248,22 +302,22 @@
 <section class="products-section" id="produto">
   <div class="container">
     <div class="section-eyebrow">Produto</div>
-    <h2 class="section-title">TrackingYou Tag+</h2>
+    <h2 class="section-title">TrackingYou TAG+YOU</h2>
     <p class="section-sub">Uma tag para veiculos, pessoas e pets.</p>
     <div style="max-width:800px;margin:3rem auto 0;background:var(--card);border:1px solid var(--blue-border);border-radius:var(--radius-lg);padding:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:center">
       <div style="text-align:center">
         <div style="width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1a2a4a,#05080f);border:1px solid var(--blue-border);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem"><span style="font-size:4rem">📍</span></div>
-        <div style="font-size:0.75rem;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">TrackingYou Tag+</div>
+        <div style="font-size:0.75rem;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">TrackingYou TAG+YOU</div>
       </div>
       <div>
         <div class="product-badge">Mais vendido</div>
         <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem">Tag Rastreadora Universal</h3>
         <p style="font-size:0.9rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Rastreamento para veiculos, familia e pets. Discreta e com bateria de ate 2 anos.</p>
         <ul class="product-features">
-          <li>GPS em tempo real (30s)</li>
+          <li>Localização via rede Find My da Apple</li>
+          <li>Sem chip, sem mensalidade de dados</li>
           <li>Bateria ate 2 anos</li>
           <li>Resistente a agua (IP67)</li>
-          <li>Cerca virtual com alerta</li>
           <li>Historico de 90 dias</li>
           <li>App gratuito iOS e Android</li>
           <li>1 ano de acesso ao sistema incluso</li>
@@ -284,7 +338,7 @@
     <div class="section-eyebrow">Depoimentos</div>
     <h2 class="section-title">O que nossos clientes dizem</h2>
     <div class="testimonials-grid">
-      <div class="testi-card"><div class="stars">★★★★★</div><p class="testi-text">"Coloquei a Tag+ no carro da minha filha e fiquei tranquilo. De bonus, ja ganhei R$ 600 em comissoes so indicando para amigos!"</p><div class="testi-author"><div class="testi-avatar">MF</div><div><div class="testi-name">Marcos F.</div><div class="testi-role">São Paulo, SP</div></div></div></div>
+      <div class="testi-card"><div class="stars">★★★★★</div><p class="testi-text">"Coloquei a TAG+YOU no carro da minha filha e fiquei tranquilo. De bonus, ja ganhei R$ 600 em comissoes so indicando para amigos!"</p><div class="testi-author"><div class="testi-avatar">MF</div><div><div class="testi-name">Marcos F.</div><div class="testi-role">São Paulo, SP</div></div></div></div>
       <div class="testi-card"><div class="stars">★★★★★</div><p class="testi-text">"O produto e incrivel, uso no meu carro e no pet. Mas o que me surpreendeu foi ganhar dinheiro indicando. Ja saquei R$ 450 esse mes!"</p><div class="testi-author"><div class="testi-avatar">CA</div><div><div class="testi-name">Carla A.</div><div class="testi-role">Curitiba, PR</div></div></div></div>
       <div class="testi-card"><div class="stars">★★★★★</div><p class="testi-text">"Comecei indicando para 3 amigos e ja tenho uma rede de 12 pessoas. A tag e otima e as comissoes caem automaticamente no meu painel!"</p><div class="testi-author"><div class="testi-avatar">RL</div><div><div class="testi-name">Roberto L.</div><div class="testi-role">Belo Horizonte, MG</div></div></div></div>
     </div>
@@ -307,7 +361,7 @@
           <div class="order-selector">
             <label>Produto</label>
             <select class="qty-select" id="product-select" style="display:none">
-              <option value="299.90" data-name="TrackingYou Tag+" data-key="tag" selected>TrackingYou Tag+</option>
+              <option value="299.90" data-name="TrackingYou TAG+YOU" data-key="tag" selected>TrackingYou TAG+YOU</option>
             </select>
           </div>
           <div class="order-selector">
@@ -316,7 +370,7 @@
               <option value="1">1 unidade</option>
             </select>
           </div>
-          <div class="order-item"><span class="item-name" id="order-product-name">TrackingYou Tag+</span><span class="item-price" id="order-unit-price">R$ 299,90</span></div>
+          <div class="order-item"><span class="item-name" id="order-product-name">TrackingYou TAG+YOU</span><span class="item-price" id="order-unit-price">R$ 299,90</span></div>
           <div class="order-item" id="discount-row" style="display:none;"><span class="item-name" style="color:#6ee7b7;">Desconto volume</span><span class="item-price" id="discount-val" style="color:#6ee7b7;"></span></div>
           <div class="order-item"><span class="item-name">Frete</span><span class="item-price" style="color:#6ee7b7;"><span style="color:var(--muted);font-size:.85rem">Calculado no envio</span></div>
           <div class="order-total"><span class="total-label">Total</span><span class="total-val" id="order-total">R$ 299,90</span></div>
@@ -843,12 +897,12 @@ function atualizaFreteResumo(valor) {
       <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem">
         <div style="font-size:2rem;margin-bottom:1rem">&#x1F697;</div>
         <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:.75rem;color:var(--blue-bright)">Protecao real para sua familia</h3>
-        <p style="font-size:.9rem;color:var(--muted);line-height:1.7">Veiculo furtado, filho saindo sozinho, pet que fugiu sao situacoes que acontecem todo dia. A TrackingYou Tag+ entrega localizacao em tempo real com atualizacao a cada 30 segundos, cerca virtual e historico de 90 dias. Uma tag. Para tudo.</p>
+        <p style="font-size:.9rem;color:var(--muted);line-height:1.7">Veiculo furtado, filho saindo sozinho, pet que fugiu sao situacoes que acontecem todo dia. A TrackingYou TAG+YOU usa a rede Find My da Apple para te ajudar a localizar, com cerca virtual e historico de 90 dias. Uma tag. Para tudo.</p>
       </div>
       <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem">
         <div style="font-size:2rem;margin-bottom:1rem">&#x1F4CD;</div>
         <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:.75rem;color:var(--blue-bright)">Discreta, resistente e duradoura</h3>
-        <p style="font-size:.9rem;color:var(--muted);line-height:1.7">Com certificacao IP67, bateria de ate 2 anos e tamanho ultrafino, a Tag+ pode ir a qualquer lugar escondida no carro, na mochila ou na coleira do seu pet sem chamar atencao.</p>
+        <p style="font-size:.9rem;color:var(--muted);line-height:1.7">Com certificacao IP67, bateria de ate 2 anos e tamanho ultrafino, a TAG+YOU pode ir a qualquer lugar escondida no carro, na mochila ou na coleira do seu pet sem chamar atencao.</p>
       </div>
     </div>
     <div style="text-align:center;margin:3rem 0">
@@ -904,7 +958,7 @@ function atualizaFreteResumo(valor) {
     </div>
   </div>
 </section>
-<section><div class="container"><div class="section-eyebrow">Duvidas frequentes</div><h2 class="section-title">Respondemos as mais comuns</h2><div class="faq-list"><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como funciona o rastreamento?<span class="faq-icon">+</span></button><div class="faq-a">A Tag+ usa tecnologia Bluetooth e a rede de dispositivos proximos para localizar em tempo real, sem precisar de internet propria.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Para quais dispositivos posso usar a Tag+?<span class="faq-icon">+</span></button><div class="faq-a">Veiculos, pessoas e pets. Uma unica tag serve para tudo.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como entro no TrackingYou Club?<span class="faq-icon">+</span></button><div class="faq-a">Ao adquirir a Tag+ voce ja faz parte automaticamente. Seu painel e criado na hora da compra.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como recebo comissoes?<span class="faq-icon">+</span></button><div class="faq-a">Creditadas no seu painel e pagas via PIX na chave cadastrada no TrackingYou Club.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Valor minimo para saque?<span class="faq-icon">+</span></button><div class="faq-a">R$ 100,00 via PIX em ate 2 dias uteis.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Quantos niveis de comissao?<span class="faq-icon">+</span></button><div class="faq-a">3 niveis: 20% venda direta, 5% segundo nivel, 3% terceiro nivel.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como acesso meu painel?<span class="faq-icon">+</span></button><div class="faq-a">Link enviado por email apos a compra. Login com CPF/CNPJ e senha criada na compra.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Tag funciona sem internet?<span class="faq-icon">+</span></button><div class="faq-a">Sim! Via Bluetooth usando dispositivos proximos ao redor.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Qual a garantia?<span class="faq-icon">+</span></button><div class="faq-a">3 meses contra defeitos de fabricacao. Certificacao IP67 resistente a agua.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como funciona apos 1 ano?<span class="faq-icon">+</span></button><div class="faq-a">1 ano incluso na compra. Apos isso plano basico gratuito ou premium a partir de R$ 9,99/mes.</div></div></div></div></section>
+<section><div class="container"><div class="section-eyebrow">Duvidas frequentes</div><h2 class="section-title">Respondemos as mais comuns</h2><div class="faq-list"><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como funciona o rastreamento?<span class="faq-icon">+</span></button><div class="faq-a">A TAG+YOU usa Bluetooth de baixa energia (BLE) e e certificada para a rede Find My da Apple. Qualquer iPhone proximo com Bluetooth ativo detecta o sinal e envia a localizacao automaticamente, sem precisar de chip ou internet propria na tag. Por depender de celulares por perto, nao e uma atualizacao continua em tempo real como um rastreador veicular com GPS e chip.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Para quais dispositivos posso usar a TAG+YOU?<span class="faq-icon">+</span></button><div class="faq-a">Veiculos, pessoas e pets. Uma unica tag serve para tudo.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como entro no TrackingYou Club?<span class="faq-icon">+</span></button><div class="faq-a">Ao adquirir a TAG+YOU voce ja faz parte automaticamente. Seu painel e criado na hora da compra.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como recebo comissoes?<span class="faq-icon">+</span></button><div class="faq-a">Creditadas no seu painel e pagas via PIX na chave cadastrada no TrackingYou Club.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Valor minimo para saque?<span class="faq-icon">+</span></button><div class="faq-a">R$ 100,00 via PIX em ate 2 dias uteis.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Quantos niveis de comissao?<span class="faq-icon">+</span></button><div class="faq-a">3 niveis: 20% venda direta, 5% segundo nivel, 3% terceiro nivel.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como acesso meu painel?<span class="faq-icon">+</span></button><div class="faq-a">Link enviado por email apos a compra. Login com CPF/CNPJ e senha criada na compra.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">A tag funciona sem internet propria?<span class="faq-icon">+</span></button><div class="faq-a">Sim! A TAG+YOU nao precisa de chip ou plano de dados. Ela usa Bluetooth e a rede Find My da Apple, formada por iPhones proximos, para enviar a localizacao.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Funciona em qualquer lugar?<span class="faq-icon">+</span></button><div class="faq-a">A TAG+YOU funciona melhor em areas com circulacao de pessoas, como cidades e centros urbanos. Em locais isolados ou zona rural, com pouco movimento de iPhones por perto, a atualizacao da localizacao pode demorar mais.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Qual a garantia?<span class="faq-icon">+</span></button><div class="faq-a">3 meses contra defeitos de fabricacao. Certificacao IP67 resistente a agua.</div></div><div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" style="background:var(--card);border:none;width:100%;text-align:left;padding:1rem 1.25rem;color:var(--text);font-size:.95rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px">Como funciona apos 1 ano?<span class="faq-icon">+</span></button><div class="faq-a">1 ano incluso na compra. Apos isso plano basico gratuito ou premium a partir de R$ 9,99/mes.</div></div></div></div></section>
 <footer>
   <div class="foot-logo">Tracking<span>You</span></div>
   <p>© 2025 TrackingYou. Todos os direitos reservados.</p>
@@ -917,7 +971,3 @@ function atualizaFreteResumo(valor) {
 </footer>
 </body>
 </html>
-
-
-
-
