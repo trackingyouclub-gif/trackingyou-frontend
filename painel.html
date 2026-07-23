@@ -113,6 +113,7 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
 .filtro-nivel.ativo{background:var(--blue-glow)!important;border-color:var(--blue-border)!important;color:var(--blue-bright)!important}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -192,6 +193,8 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
     <button class="btn big" style="width:100%" onclick="baixarQrCode()">⬇️ Baixar QR Code</button>
   </div>
 </div>
+
+<div id="qr-canvas-pdf" style="position:absolute;left:-9999px;top:-9999px"></div>
 
 <div class="modal-overlay" id="modal-quitar">
   <div class="modal-box" style="max-width:420px">
@@ -317,6 +320,7 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
           <button class="btn" onclick="copiarLink()">Copiar link</button>
           <a class="btn green" id="vwa" href="#" target="_blank">WhatsApp</a>
           <button class="btn" style="background:var(--card2);border:1px solid var(--blue-border)" onclick="abrirQrCode()">📱 QR Code</button>
+          <button class="btn" style="background:var(--card2);border:1px solid var(--blue-border)" onclick="baixarFolderPDF()">📄 Baixar meu folder (PDF)</button>
         </div>
       </div>
     </div>
@@ -1059,6 +1063,254 @@ function baixarQrCode(){
   link.download='qrcode-trackingyou-'+ID+'.png';
   link.href=canvas.toDataURL('image/png');
   link.click();
+}
+
+function pdfWrapText(doc,text,x,y,maxWidth,fontSize,lineHeight,align){
+  const lines=doc.splitTextToSize(text,maxWidth);
+  lines.forEach((line,i)=>{
+    if(align==='center')doc.text(line,x,y+i*lineHeight,{align:'center'});
+    else doc.text(line,x,y+i*lineHeight);
+  });
+  return y+lines.length*lineHeight;
+}
+
+async function baixarFolderPDF(){
+  if(!VD||!VD.vendedor){alert('Aguarde o painel carregar antes de baixar o folder.');return;}
+  const link=document.getElementById('vl').textContent;
+  if(!link||link==='-'){alert('Link de indicacao ainda nao carregado.');return;}
+
+  // Gera o QR code (escondido) para capturar como imagem
+  const qrWrap=document.getElementById('qr-canvas-pdf');
+  qrWrap.innerHTML='';
+  new QRCode(qrWrap,{text:link,width:280,height:280,colorDark:'#080c14',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  await new Promise(r=>setTimeout(r,150));
+  const qrCanvas=qrWrap.querySelector('canvas');
+  const qrDataUrl=qrCanvas?qrCanvas.toDataURL('image/png'):null;
+
+  const { jsPDF }=window.jspdf;
+  const doc=new jsPDF({unit:'pt',format:'a4'});
+  const W=doc.internal.pageSize.getWidth();
+  const H=doc.internal.pageSize.getHeight();
+  const NAVY=[14,21,36], BLUE=[59,130,246], BLUE_BRIGHT=[96,165,250], BLUE_LIGHT=[234,241,254];
+  const GREEN=[16,185,129], GRAY=[100,116,139], DARKTXT=[31,41,55], MUTED=[139,157,181];
+
+  // fundo branco
+  doc.setFillColor(255,255,255);
+  doc.rect(0,0,W,H,'F');
+
+  // faixa superior
+  const topH=150;
+  doc.setFillColor(...NAVY);
+  doc.rect(0,0,W,topH,'F');
+  doc.setFillColor(...BLUE);
+  doc.rect(0,topH-5,W,5,'F');
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(22);
+  doc.setTextColor(255,255,255);
+  doc.text('Tracking',30,40);
+  const tw=doc.getTextWidth('Tracking');
+  doc.setTextColor(...BLUE_BRIGHT);
+  doc.text('You',30+tw,40);
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(21);
+  doc.setTextColor(255,255,255);
+  doc.text('Nunca perca de vista o que mais importa',W/2,76,{align:'center'});
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(12);
+  doc.setTextColor(...BLUE_BRIGHT);
+  doc.text('Rastreamento inteligente para veiculos, pessoas e pets',W/2,98,{align:'center'});
+
+  // credito ao vendedor
+  const nomeVendedor=(VD.vendedor.nome||'').split(' ')[0]||'nosso parceiro';
+  doc.setFillColor(...BLUE);
+  doc.roundedRect(W/2-110,topH-38,220,22,10,10,'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.setTextColor(255,255,255);
+  doc.text('OFERECIDO POR '+nomeVendedor.toUpperCase(),W/2,topH-23,{align:'center'});
+
+  // ilustracao da tag (compacta)
+  const cx=W/2, cy=topH+70;
+  [50,36].forEach(r=>{
+    doc.setDrawColor(...BLUE_LIGHT);
+    doc.setLineWidth(1.2);
+    doc.circle(cx,cy,r,'S');
+  });
+  doc.setFillColor(...BLUE_LIGHT);
+  doc.circle(cx,cy,22,'F');
+  doc.setDrawColor(...BLUE);
+  doc.setLineWidth(1.4);
+  doc.circle(cx,cy,22,'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...NAVY);
+  doc.text('TAG+YOU · rede Find My da Apple',cx,cy+38,{align:'center'});
+
+  // aplicacoes: veiculos, pessoas, pets (icones vetoriais)
+  function iconBadgeBg(x,y,r){
+    r=r||27;
+    doc.setFillColor(...BLUE_LIGHT);
+    doc.circle(x,y,r,'F');
+    doc.setDrawColor(...BLUE);
+    doc.setLineWidth(1.2);
+    doc.circle(x,y,r,'S');
+  }
+  function drawCarIcon(x,y){
+    iconBadgeBg(x,y);
+    doc.setFillColor(...NAVY);
+    doc.roundedRect(x-13,y-6,26,10,3,3,'F');
+    doc.roundedRect(x-8,y-10,16,8,3,3,'F');
+    doc.setFillColor(255,255,255);
+    doc.circle(x-7,y+5,4,'F');
+    doc.circle(x+7,y+5,4,'F');
+    doc.setFillColor(...NAVY);
+    doc.circle(x-7,y+5,2.2,'F');
+    doc.circle(x+7,y+5,2.2,'F');
+  }
+  function drawPersonIcon(x,y){
+    iconBadgeBg(x,y);
+    doc.setFillColor(...NAVY);
+    doc.circle(x,y-9,5.5,'F');
+    doc.ellipse(x,y+7,9,7,'F');
+  }
+  function drawPetIcon(x,y){
+    iconBadgeBg(x,y);
+    doc.setFillColor(...NAVY);
+    doc.circle(x,y+4,7.5,'F');
+    doc.circle(x-8,y-6,4,'F');
+    doc.circle(x-3,y-10,4,'F');
+    doc.circle(x+3,y-10,4,'F');
+    doc.circle(x+8,y-6,4,'F');
+  }
+
+  const sectionY=cy+70;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11.5);
+  doc.setTextColor(...NAVY);
+  doc.text('Uma tag, três aplicações',cx,sectionY,{align:'center'});
+
+  const appsY=sectionY+46;
+  const appSpacing=130;
+  const apps=[[drawCarIcon,'Veículos'],[drawPersonIcon,'Pessoas'],[drawPetIcon,'Pets']];
+  [cx-appSpacing,cx,cx+appSpacing].forEach((ax,i)=>{
+    apps[i][0](ax,appsY);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.setTextColor(...NAVY);
+    doc.text(apps[i][1],ax,appsY+42,{align:'center'});
+  });
+
+  // preco
+  const py=appsY+78;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(30);
+  doc.setTextColor(...GREEN);
+  doc.text('R$ 299,90',cx,py,{align:'center'});
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...GRAY);
+  doc.text('por tag - 1 ano de acesso ao sistema incluso',cx,py+16,{align:'center'});
+
+  // beneficios
+  const beneficios=[
+    'Sem chip, sem mensalidade de dados',
+    'Bateria com duracao de ate 2 anos',
+    'Resistente a agua (IP67)',
+    'Historico de localizacao de 90 dias',
+    'App gratuito iOS e Android',
+    'Discreta: cabe no chaveiro, bolsa ou coleira',
+  ];
+  const by=py+40;
+  const colW=(W-60)/2;
+  const col1X=30, col2X=30+colW+10;
+  const rowH=24;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9.3);
+  beneficios.forEach((b,i)=>{
+    const col=i%2, row=Math.floor(i/2);
+    const x=col===0?col1X:col2X;
+    const y=by+row*rowH;
+    doc.setFillColor(...GREEN);
+    doc.circle(x+4,y-3,4,'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255,255,255);
+    doc.text('v',x+2.4,y-0.5);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9.3);
+    doc.setTextColor(...DARKTXT);
+    pdfWrapText(doc,b,x+14,y,colW-16,9.3,10.5,'left');
+  });
+
+  // como usar
+  const uy=by+3*rowH+16;
+  doc.setFillColor(234,241,254);
+  doc.roundedRect(30,uy,W-60,46,8,8,'F');
+  doc.setDrawColor(...BLUE);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(30,uy,W-60,46,8,8,'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9.6);
+  doc.setTextColor(...NAVY);
+  doc.text('Como usar:',38,uy+16);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.8);
+  doc.setTextColor(...DARKTXT);
+  pdfWrapText(doc,'Apos a compra, baixe o app gratuito TrackingYou na Apple Store ou Google Play, faca o pareamento da sua tag e comece a rastrear na hora.',38,uy+30,W-76,8.8,11,'left');
+
+  // oportunidade de ganhos
+  const iy=uy+46+28;
+  doc.setFillColor(231,249,242);
+  doc.roundedRect(30,iy,W-60,50,8,8,'F');
+  doc.setDrawColor(...GREEN);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(30,iy,W-60,50,8,8,'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10.8);
+  doc.setTextColor(6,95,70);
+  doc.text('Compre agora, indique e ganhe uma renda extra!',cx,iy+18,{align:'center'});
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.8);
+  doc.setTextColor(...DARKTXT);
+  const oportLines=doc.splitTextToSize('Compartilhe seu link e receba comissão em cada venda da sua rede — sem custo para participar.',W-60-16);
+  oportLines.forEach((line,i)=>doc.text(line,cx,iy+32+i*11,{align:'center'}));
+
+  // rodape com QR
+  const footH=118;
+  doc.setFillColor(...NAVY);
+  doc.rect(0,H-footH,W,footH,'F');
+  doc.setFillColor(...BLUE);
+  doc.rect(0,H-footH,W,3,'F');
+
+  if(qrDataUrl){
+    const qrSize=76;
+    const qrX=W-40-qrSize, qrY=H-footH+(footH-qrSize)/2;
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(qrX-8,qrY-8,qrSize+16,qrSize+16,6,6,'F');
+    doc.addImage(qrDataUrl,'PNG',qrX,qrY,qrSize,qrSize);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.6);
+    doc.setTextColor(...MUTED);
+    doc.text('Aponte a camera e compre',qrX+qrSize/2,qrY+qrSize+18,{align:'center'});
+  }
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.setTextColor(255,255,255);
+  doc.text('Peca agora:',30,H-footH+36);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...BLUE_BRIGHT);
+  pdfWrapText(doc,link,30,H-footH+54,W-140,11,13,'left');
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.2);
+  doc.setTextColor(...MUTED);
+  doc.text('Vendedor: '+VD.vendedor.nome+'  -  ID '+ID,30,H-16);
+
+  doc.save('TrackingYou-Folder-'+ID+'.pdf');
 }
 
 
