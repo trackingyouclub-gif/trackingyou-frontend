@@ -1144,6 +1144,11 @@ async function baixarFolderPDF(){
   doc.setDrawColor(...BLUE);
   doc.setLineWidth(1.4);
   doc.circle(cx,cy,22,'S');
+  doc.setFillColor(...NAVY);
+  doc.circle(cx,cy-2,6.5,'F');
+  doc.triangle(cx-5,cy,cx+5,cy,cx,cy+7,'F');
+  doc.setFillColor(...BLUE_LIGHT);
+  doc.circle(cx,cy-2,2,'F');
   doc.setFont('helvetica','bold');
   doc.setFontSize(10);
   doc.setTextColor(...NAVY);
@@ -1190,7 +1195,7 @@ async function baixarFolderPDF(){
   doc.setFont('helvetica','bold');
   doc.setFontSize(11.5);
   doc.setTextColor(...NAVY);
-  doc.text('Uma tag, três aplicações',cx,sectionY,{align:'center'});
+  doc.text('Uma tag, diversas aplicações',cx,sectionY,{align:'center'});
 
   const appsY=sectionY+46;
   const appSpacing=130;
@@ -1275,7 +1280,7 @@ async function baixarFolderPDF(){
   doc.setFont('helvetica','normal');
   doc.setFontSize(8.8);
   doc.setTextColor(...DARKTXT);
-  const oportLines=doc.splitTextToSize('Compartilhe seu link e receba comissão em cada venda da sua rede — sem custo para participar.',W-60-16);
+  const oportLines=doc.splitTextToSize('Torne-se um parceiro TrackingYou: compartilhe seu link e receba comissão em cada venda da sua rede — sem custo para participar.',W-60-16);
   oportLines.forEach((line,i)=>doc.text(line,cx,iy+32+i*11,{align:'center'}));
 
   // rodape com QR
