@@ -58,6 +58,8 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
 .cis.pendente{background:rgba(245,158,11,.15);color:var(--warning)}
 .cis.pago{background:rgba(16,185,129,.15);color:var(--success)}
 .civ{font-weight:700;color:var(--blue-bright)}
+.btn-excluir-pedido{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:8px;padding:6px 10px;font-size:.85rem;cursor:pointer;transition:opacity .2s}
+.btn-excluir-pedido:hover{opacity:.7}
 .tree-wrap{overflow-x:auto;padding:1rem 0}
 .tnode{display:inline-flex;flex-direction:column;align-items:center;margin:0 8px}
 .tcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;text-align:center;min-width:120px;position:relative}
@@ -107,6 +109,7 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
 .pin-node:hover{opacity:.8}
 .filtro-nivel.ativo{background:var(--blue-glow)!important;border-color:var(--blue-border)!important;color:var(--blue-bright)!important}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -171,6 +174,40 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
 </nav>
 
 <!-- MODAL CHECKOUT -->
+<div class="modal-overlay" id="modal-qr">
+  <div class="modal-box" style="max-width:380px;text-align:center">
+    <div class="modal-header">
+      <h2>Seu QR Code de indicacao</h2>
+      <button class="modal-close" onclick="fecharQrCode()">×</button>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem">Mostre esta tela para o cliente escanear e ser direcionado direto ao seu link de indicacao.</p>
+    <div id="qr-canvas-wrap" style="background:#fff;border-radius:var(--r);padding:1.25rem;display:inline-block;margin-bottom:1rem"></div>
+    <div class="lbox" id="qr-link-display" style="margin-bottom:1rem">-</div>
+    <button class="btn big" style="width:100%" onclick="baixarQrCode()">⬇️ Baixar QR Code</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-quitar">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header">
+      <h2>Quitar venda com saldo</h2>
+      <button class="modal-close" onclick="fecharQuitarComSaldo()">×</button>
+    </div>
+    <div class="order-total-modal">
+      <span class="otlabel">Valor a debitar do seu saldo</span>
+      <span class="otval" id="quitar-valor-display">R$ 0,00</span>
+    </div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">Preencha os dados que faltam do comprador para cadastra-lo como vendedor apos a quitacao.</p>
+    <div class="fg"><label>CPF/CNPJ do comprador</label><input type="text" id="quitar-cpf" placeholder="000.000.000-00"></div>
+    <div class="frow">
+      <div class="fg"><label>Senha de acesso</label><input type="password" id="quitar-senha" placeholder="Minimo 6 caracteres"></div>
+      <div class="fg"><label>Repetir senha</label><input type="password" id="quitar-senha2" placeholder="Repita a senha"></div>
+    </div>
+    <button class="bsaque" style="background:var(--blue)" onclick="confirmarQuitarComSaldo()">Confirmar e Quitar</button>
+    <div class="fb" id="fbquitar"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal">
   <div class="modal-box">
     <div class="modal-header">
@@ -184,6 +221,7 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
     </div>
 
     <input type="hidden" id="m-qty" value="1">
+    <input type="hidden" id="m-vendaId" value="">
 
     <div class="fsec">Dados pessoais</div>
     <div class="frow">
@@ -272,6 +310,7 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" onclick="copiarLink()">Copiar link</button>
           <a class="btn green" id="vwa" href="#" target="_blank">WhatsApp</a>
+          <button class="btn" style="background:var(--card2);border:1px solid var(--blue-border)" onclick="abrirQrCode()">📱 QR Code</button>
         </div>
       </div>
     </div>
@@ -289,13 +328,37 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
         <div class="sdisplay">
           <div style="font-size:.78rem;color:var(--muted);margin-bottom:.25rem">Saldo para saque</div>
           <div class="sval2" id="ss2">R$ 0,00</div>
-          <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Minimo: R$ 50,00</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Minimo: R$ 100,00 &middot; Taxa de saque: R$ 10,00</div>
+          <div style="font-size:.78rem;color:var(--blue-bright);margin-top:6px" id="ss2-liquido"></div>
         </div>
         <div class="fg"><label>Chave PIX</label><input type="text" id="pix" placeholder="CPF, e-mail ou chave aleatoria"></div>
-        <button class="bsaque" id="bsq" onclick="saque()">Solicitar Saque</button>
+        <button class="bsaque" id="bsq" onclick="saque()">Solicitar Saque (Manual)</button>
+        <button class="bsaque" id="bsqAuto" onclick="saqueAutomatico()" style="margin-top:8px;background:var(--blue)">⚡ Saque Automático (Pix)</button>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.5">O saque automático só funciona se sua chave Pix estiver cadastrada com o mesmo CPF/CNPJ desta conta. Caso contrário, será revisado manualmente.</div>
         <div class="fb" id="fbsq"></div>
       </div>
       <div class="card"><h2>Ultimas Comissoes</h2><div id="lc"><div class="empty">Nenhuma comissao ainda</div></div></div>
+    </div>
+
+    <div class="card">
+      <h2>Transferir Saldo para Outro Membro</h2>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.25rem">Transfira parte do seu saldo disponivel (comissoes pendentes) para outro membro da rede, usando o codigo de 4 digitos dele.</p>
+
+      <div class="fg"><label>Codigo do destinatario</label><input type="text" id="transf-codigo" placeholder="Ex: TS01" maxlength="4" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+      <button class="btn" onclick="buscarDestinatario()">Buscar destinatario</button>
+
+      <div id="transf-confirmacao" style="display:none;margin-top:1.25rem;background:var(--bg2);border:1px solid var(--blue-border);border-radius:var(--r);padding:1rem">
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Confirme o destinatario</div>
+        <div style="font-weight:700;font-size:1.05rem" id="transf-nome">-</div>
+        <div style="font-size:.8rem;color:var(--muted)" id="transf-email">-</div>
+        <div style="font-size:.78rem;color:var(--warning);margin-top:8px">⚠️ Confira se o nome e email correspondem a pessoa certa antes de continuar.</div>
+
+        <div class="fg" style="margin-top:1rem"><label>Valor a transferir</label><input type="number" id="transf-valor" placeholder="0,00" min="0.01" step="0.01" oninput="atualizarTotalTransferencia()"></div>
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem">Taxa de transferencia: R$ 10,00 &middot; Total a debitar do seu saldo: <strong id="transf-total-debitar" style="color:var(--blue-bright)">R$ 0,00</strong></div>
+        <button class="bsaque" style="background:var(--blue)" onclick="confirmarTransferencia()">Confirmar Transferencia</button>
+      </div>
+
+      <div class="fb" id="fbtransf"></div>
     </div>
 
     <div class="card">
@@ -311,6 +374,11 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
         <div class="btotal" id="btotal">R$ 299,90</div>
       </div>
       <button class="btn big" onclick="comprar()">Comprar agora</button>
+    </div>
+
+    <div class="card">
+      <h2>Vendas Geradas pelo Meu Link</h2>
+      <div id="vendas-geradas-list"><div class="empty">Carregando vendas...</div></div>
     </div>
 
     
@@ -487,13 +555,85 @@ function render(d){
   document.getElementById('sv').textContent=s.totalVendas;
   document.getElementById('si').textContent=s.totalIndicados;
   document.getElementById('ss2').textContent=f(s.saldoDisponivel);
-  if(s.saldoDisponivel<50)document.getElementById('bsq').disabled=true;
+  const SAQUE_MINIMO=100,SAQUE_TAXA=10;
+  if(s.saldoDisponivel>=SAQUE_MINIMO){
+    document.getElementById('ss2-liquido').textContent='Valor liquido estimado: '+f(s.saldoDisponivel-SAQUE_TAXA);
+  }else{
+    document.getElementById('ss2-liquido').textContent='';
+  }
+  if(s.saldoDisponivel<SAQUE_MINIMO){document.getElementById('bsq').disabled=true;document.getElementById('bsqAuto').disabled=true;}
   if(c&&c.length>0){
     document.getElementById('lc').innerHTML=c.slice(0,10).map(x=>
       '<div class="ci"><div><div>Nivel '+x.nivel+' - '+x.percentual+'%</div><div class="cin">'+new Date(x.data_criacao).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+x.status+'">'+x.status+'</span><span class="civ">'+f(x.valor)+'</span></div></div>'
     ).join('');
   }
+  renderVendasGeradas(d.vendasGeradas||[]);
   show();
+}
+
+function mascararEmail(email){
+  if(!email||!email.includes('@'))return email||'';
+  const [user,dominio]=email.split('@');
+  if(user.length<=2)return user[0]+'***@'+dominio;
+  return user.slice(0,2)+'***@'+dominio;
+}
+
+function renderVendasGeradas(vendas){
+  const cont=document.getElementById('vendas-geradas-list');
+  if(!vendas||!vendas.length){cont.innerHTML='<div class="empty">Nenhuma venda gerada pelo seu link ainda</div>';return;}
+  cont.innerHTML=vendas.map(v=>{
+    const statusClass=v.status==='pago'?'pago':(v.status==='cancelado'?'pendente':'pendente');
+    const statusLabel=v.status==='pago'?'Pago':(v.status==='cancelado'?'Cancelado':'Pendente');
+    const btnCobrar=(v.status==='pendente'&&v.comprador_telefone)?'<button class="btn green" style="margin-left:8px;font-size:.75rem" onclick="cobrarViaWhatsApp(\''+(v.comprador_nome||'').replace(/'/g,"\\'")+'\',\''+v.comprador_telefone+'\','+v.valor+')">📲 Cobrar</button>':'';
+    const btnQuitar=(v.status==='pendente')?'<button class="btn" style="margin-left:8px;font-size:.75rem;background:var(--card2);border:1px solid var(--blue-border)" onclick="abrirQuitarComSaldo(\''+v.id+'\','+v.valor+')">💰 Quitar com saldo</button>':'';
+    return '<div class="ci"><div><div style="font-weight:600">'+(v.comprador_nome||'Comprador')+'</div><div class="cin">'+mascararEmail(v.comprador_email)+' &middot; '+new Date(v.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="cis '+statusClass+'">'+statusLabel+'</span><span class="civ">'+f(v.valor)+'</span>'+btnCobrar+btnQuitar+'</div></div>';
+  }).join('');
+}
+
+function cobrarViaWhatsApp(nome, telefone, valor){
+  const tel=(telefone||'').replace(/\D/g,'');
+  if(!tel){alert('Telefone do comprador nao disponivel.');return;}
+  const telComCodigo=tel.length<=11?'55'+tel:tel;
+  const primeiroNome=(nome||'').split(' ')[0]||'';
+  const msg='Oi'+(primeiroNome?' '+primeiroNome:'')+'! 😊 Vi que seu pedido da TrackingYou TAG+YOU no valor de '+f(valor)+' ainda esta pendente de pagamento. Posso te ajudar a finalizar? Qualquer duvida, estou por aqui!';
+  window.open('https://wa.me/'+telComCodigo+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+let quitarVendaId=null,quitarVendaValor=0;
+
+function abrirQuitarComSaldo(vendaId,valor){
+  quitarVendaId=vendaId;quitarVendaValor=valor;
+  document.getElementById('quitar-valor-display').textContent=f(valor);
+  document.getElementById('quitar-cpf').value='';
+  document.getElementById('quitar-senha').value='';
+  document.getElementById('quitar-senha2').value='';
+  document.getElementById('fbquitar').style.display='none';
+  document.getElementById('modal-quitar').style.display='flex';
+}
+
+function fecharQuitarComSaldo(){
+  document.getElementById('modal-quitar').style.display='none';
+}
+
+async function confirmarQuitarComSaldo(){
+  const fb=document.getElementById('fbquitar');
+  const cpfCnpj=document.getElementById('quitar-cpf').value.trim();
+  const senha=document.getElementById('quitar-senha').value;
+  const senha2=document.getElementById('quitar-senha2').value;
+  if(!cpfCnpj){fb.textContent='Informe o CPF/CNPJ do comprador';fb.className='fb error';fb.style.display='block';return;}
+  if(!senha||senha.length<6){fb.textContent='Senha deve ter pelo menos 6 caracteres';fb.className='fb error';fb.style.display='block';return;}
+  if(senha!==senha2){fb.textContent='As senhas nao coincidem';fb.className='fb error';fb.style.display='block';return;}
+  if(!confirm('Confirma o uso de '+f(quitarVendaValor)+' do seu saldo para quitar esta venda? Esta acao nao pode ser desfeita.'))return;
+  fb.textContent='Processando...';fb.className='fb loading';fb.style.display='block';
+  try{
+    const r=await fetch(B+'/api/venda/'+quitarVendaId+'/quitar-com-saldo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendedorId:ID,cpfCnpj,senha})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    fb.textContent=d.mensagem;fb.className='fb success';fb.style.display='block';
+    setTimeout(()=>{fecharQuitarComSaldo();carregarPainelLogado();},2000);
+  }catch(e){
+    fb.textContent=e.message;fb.className='fb error';fb.style.display='block';
+  }
 }
 
 let REDE_DATA = null;
@@ -784,6 +924,7 @@ async function saque(){
   const fb=document.getElementById('fbsq');
   if(!pk){fb.textContent='Informe sua chave PIX';fb.className='fb error';fb.style.display='block';return;}
   document.getElementById('bsq').disabled=true;
+  document.getElementById('bsqAuto').disabled=true;
   try{
     const r=await fetch(B+'/api/saque',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendedorId:ID,pixKey:pk})});
     const d=await r.json();
@@ -792,6 +933,81 @@ async function saque(){
   }catch(e){
     fb.textContent=e.message;fb.className='fb error';fb.style.display='block';
     document.getElementById('bsq').disabled=false;
+    document.getElementById('bsqAuto').disabled=false;
+  }
+}
+
+async function saqueAutomatico(){
+  const pk=document.getElementById('pix').value.trim();
+  const fb=document.getElementById('fbsq');
+  if(!pk){fb.textContent='Informe sua chave PIX';fb.className='fb error';fb.style.display='block';return;}
+  document.getElementById('bsq').disabled=true;
+  document.getElementById('bsqAuto').disabled=true;
+  fb.textContent='Validando chave Pix e processando...';fb.className='fb loading';fb.style.display='block';
+  try{
+    const r=await fetch(B+'/api/saque/automatico',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendedorId:ID,pixKey:pk})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    fb.textContent=d.mensagem;fb.className='fb '+(d.automatico?'success':'error');fb.style.display='block';
+  }catch(e){
+    fb.textContent=e.message;fb.className='fb error';fb.style.display='block';
+  }finally{
+    document.getElementById('bsq').disabled=false;
+    document.getElementById('bsqAuto').disabled=false;
+  }
+}
+
+let destinatarioConfirmado=null;
+
+async function buscarDestinatario(){
+  const codigo=document.getElementById('transf-codigo').value.trim();
+  const fb=document.getElementById('fbtransf');
+  fb.style.display='none';
+  document.getElementById('transf-confirmacao').style.display='none';
+  destinatarioConfirmado=null;
+  if(!codigo){fb.textContent='Informe o codigo do destinatario';fb.className='fb error';fb.style.display='block';return;}
+  if(codigo===ID){fb.textContent='Voce nao pode transferir para voce mesmo';fb.className='fb error';fb.style.display='block';return;}
+  try{
+    const r=await fetch(B+'/api/transferencia/destinatario/'+codigo);
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    destinatarioConfirmado=d;
+    document.getElementById('transf-nome').textContent=d.nome;
+    document.getElementById('transf-email').textContent=d.emailMascarado||'Email nao disponivel';
+    document.getElementById('transf-confirmacao').style.display='block';
+  }catch(e){
+    fb.textContent=e.message;fb.className='fb error';fb.style.display='block';
+  }
+}
+
+const TRANSFERENCIA_TAXA=10;
+
+function atualizarTotalTransferencia(){
+  const valor=parseFloat(document.getElementById('transf-valor').value)||0;
+  document.getElementById('transf-total-debitar').textContent=f(valor+TRANSFERENCIA_TAXA);
+}
+
+async function confirmarTransferencia(){
+  const fb=document.getElementById('fbtransf');
+  const valor=parseFloat(document.getElementById('transf-valor').value);
+  if(!destinatarioConfirmado){fb.textContent='Busque o destinatario primeiro';fb.className='fb error';fb.style.display='block';return;}
+  if(!valor||valor<=0){fb.textContent='Informe um valor valido';fb.className='fb error';fb.style.display='block';return;}
+  const totalDebitar=valor+TRANSFERENCIA_TAXA;
+  if(!confirm('Confirma a transferencia de '+f(valor)+' para '+destinatarioConfirmado.nome+' ('+destinatarioConfirmado.id+')?\n\nTotal a debitar do seu saldo (incluindo taxa de '+f(TRANSFERENCIA_TAXA)+'): '+f(totalDebitar)+'\n\nEsta acao nao pode ser desfeita.'))return;
+  fb.textContent='Processando transferencia...';fb.className='fb loading';fb.style.display='block';
+  try{
+    const r=await fetch(B+'/api/transferencia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({remetenteId:ID,destinatarioId:destinatarioConfirmado.id,valor})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+    fb.textContent=d.mensagem;fb.className='fb success';fb.style.display='block';
+    document.getElementById('transf-confirmacao').style.display='none';
+    document.getElementById('transf-codigo').value='';
+    document.getElementById('transf-valor').value='';
+    document.getElementById('transf-total-debitar').textContent='R$ 0,00';
+    destinatarioConfirmado=null;
+    carregarPainelLogado();
+  }catch(e){
+    fb.textContent=e.message;fb.className='fb error';fb.style.display='block';
   }
 }
 
@@ -800,6 +1016,38 @@ function copiarLink(){
     const b=document.querySelector('.btn');b.textContent='Copiado!';
     setTimeout(()=>b.textContent='Copiar link',2000);
   });
+}
+
+let qrInstance=null;
+
+function abrirQrCode(){
+  const link=document.getElementById('vl').textContent;
+  if(!link||link==='-'){alert('Link de indicacao ainda nao carregado.');return;}
+  document.getElementById('qr-link-display').textContent=link;
+  const wrap=document.getElementById('qr-canvas-wrap');
+  wrap.innerHTML='';
+  qrInstance=new QRCode(wrap,{
+    text:link,
+    width:220,
+    height:220,
+    colorDark:'#080c14',
+    colorLight:'#ffffff',
+    correctLevel:QRCode.CorrectLevel.H
+  });
+  document.getElementById('modal-qr').style.display='flex';
+}
+
+function fecharQrCode(){
+  document.getElementById('modal-qr').style.display='none';
+}
+
+function baixarQrCode(){
+  const canvas=document.querySelector('#qr-canvas-wrap canvas');
+  if(!canvas){alert('QR Code ainda nao gerado.');return;}
+  const link=document.createElement('a');
+  link.download='qrcode-trackingyou-'+ID+'.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
 }
 
 
@@ -816,7 +1064,8 @@ async function carregarPedidos(){
       const statusClass = p.status === 'pago' ? 'pago' : (p.status === 'cancelado' ? 'pendente' : 'pendente');
       const statusLabel = p.status === 'pago' ? 'Pago' : (p.status === 'cancelado' ? 'Cancelado' : 'Pendente');
       const btnPagar = p.status === 'pendente' ? '<button class="btn green" style="margin-left:8px" onclick="abrirPagamentoPendente(\''+p.id+'\','+p.valor+')">Finalizar pagamento</button>' : '';
-      return '<div class="ci"><div><div style="font-weight:600">'+fmt(p.valor)+'</div><div class="cin">'+new Date(p.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span>'+btnPagar+'</div></div>';
+      const btnExcluir = p.status === 'pendente' ? '<button class="btn-excluir-pedido" style="margin-left:8px" onclick="excluirPedido(\''+p.id+'\')" title="Excluir pedido">🗑️</button>' : '';
+      return '<div class="ci"><div><div style="font-weight:600">'+f(p.valor)+'</div><div class="cin">'+new Date(p.data_venda).toLocaleDateString('pt-BR')+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cis '+statusClass+'">'+statusLabel+'</span>'+btnPagar+btnExcluir+'</div></div>';
     }).join('');
   }catch(e){
     cont.innerHTML = '<div class="empty">Erro ao carregar pedidos</div>';
@@ -835,6 +1084,19 @@ function abrirPagamentoPendente(vendaId, valor){
   document.getElementById('m-cpf').value = v.cpf_cnpj || '';
   document.getElementById('m-tel').value = v.telefone ? '('+v.telefone.slice(0,2)+') '+v.telefone.slice(2) : '';
   document.getElementById('modal').style.display = 'flex';
+}
+
+async function excluirPedido(pedidoId){
+  if(!confirm('Tem certeza que deseja excluir este pedido pendente? Essa acao nao pode ser desfeita.')) return;
+  const cont = document.getElementById('pedidos-list');
+  try{
+    const r = await fetch(B+'/api/partner/'+ID+'/pedidos/'+pedidoId, {method:'DELETE'});
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error || 'Erro ao excluir pedido');
+    carregarPedidos();
+  }catch(e){
+    alert('Erro ao excluir pedido: '+e.message);
+  }
 }
 
 init();
