@@ -517,7 +517,7 @@ function renderAfiliados(usuarios){
       +'<td style="text-align:center">'+(u.total_vendas||0)+'</td>'
       +'<td style="color:var(--success);font-weight:600">'+fmt(u.total_comissoes||0)+'</td>'
       +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(u.data_cadastro)+'</td>'
-      +'<td><div class="btn-group"><a href="painel.html?id='+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a><button class="btn warn" onclick="editarVendedor(\''+u.id+'\',\''+u.email+'\')" style="font-size:.75rem">Editar</button></div></td>'
+      +'<td><div class="btn-group"><a href="painel.html?id='+u.id+'" target="_blank" class="btn ghost" style="font-size:.75rem">Ver painel</a><button class="btn warn" onclick="editarVendedor(\''+u.id+'\',\''+u.email+'\',\''+(u.cpf_cnpj||'')+'\')" style="font-size:.75rem">Editar</button></div></td>'
       +'</tr>';
   }).join('');
 }
@@ -779,12 +779,14 @@ async function adicionarEstoque(){
   }catch(e){fb.textContent='Erro: '+e.message;fb.className='fb error';fb.style.display='block';}
 }
 
-function editarVendedor(id, emailAtual){
+function editarVendedor(id, emailAtual, cpfAtual){
   const novoEmail=prompt('Email atual: '+emailAtual+'\nNovo email (deixe vazio para manter):',emailAtual);
+  const novoCpf=prompt('CPF/CNPJ atual: '+(cpfAtual||'(nao cadastrado)')+'\nNovo CPF/CNPJ (deixe vazio para manter):',cpfAtual||'');
   const novaSenha=prompt('Nova senha (deixe vazio para nao alterar):');
-  if(novoEmail===null&&novaSenha===null)return;
+  if(novoEmail===null&&novoCpf===null&&novaSenha===null)return;
   const body={};
   if(novoEmail&&novoEmail!==emailAtual)body.email=novoEmail;
+  if(novoCpf&&novoCpf!==cpfAtual)body.cpfCnpj=novoCpf;
   if(novaSenha&&novaSenha.length>=6)body.novaSenha=novaSenha;
   if(!Object.keys(body).length){alert('Nada alterado.');return;}
   fetch(B+'/api/admin/vendedor/'+id+'/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
