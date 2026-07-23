@@ -12,6 +12,9 @@ body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-hei
 nav{background:rgba(8,12,20,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
 .logo{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700}.logo span{color:var(--blue-bright)}
 .badge{background:var(--blue-glow);border:1px solid var(--blue-border);color:var(--blue-bright);padding:6px 14px;border-radius:100px;font-size:0.78rem;font-weight:700}
+.nav-right{display:flex;align-items:center;gap:12px}
+.btn-logout{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;font-family:Inter,sans-serif}
+.btn-logout:hover{border-color:#ef4444;color:#fca5a5}
 main{max-width:1100px;margin:0 auto;padding:2rem}
 .loading{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:1rem}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite}
@@ -170,7 +173,10 @@ main{max-width:1100px;margin:0 auto;padding:2rem}
 </div>
 <nav>
   <div class="logo">Tracking<span>YouClub</span></div>
-  <div class="badge" id="nav-name">...</div>
+  <div class="nav-right">
+    <div class="badge" id="nav-name">...</div>
+    <button class="btn-logout" onclick="fazerLogout()" title="Sair">Sair</button>
+  </div>
 </nav>
 
 <!-- MODAL CHECKOUT -->
@@ -470,6 +476,11 @@ async function carregarPainelLogado(){
     document.getElementById('loading').style.display='none';
     document.getElementById('login-wrap').style.display='flex';
   }
+}
+
+function fazerLogout(){
+  sessionStorage.removeItem('ty_vendor_id');
+  window.location.href = 'painel.html';
 }
 
 async function fazerLogin(){
