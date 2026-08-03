@@ -496,8 +496,25 @@ async function carregarAfiliados(){
   const tbody=document.getElementById('tab-afiliados-body');
   tbody.innerHTML='<tr><td colspan="10" class="loading-inline">Carregando...</td></tr>';
   try{
-    const usuarios=await fetch(B+'/api/admin/usuarios').then(r=>r.json());
-    allAfiliados=usuarios||[];
+    const [usuarios,pendentes]=await Promise.all([
+      fetch(B+'/api/admin/usuarios').then(r=>r.json()).catch(()=>[]),
+      fetch(B+'/api/admin/pendentes').then(r=>r.json()).catch(()=>[]),
+    ]);
+    const pendentesMapeados=(pendentes||[]).map(v=>({
+      id:null,
+      nome:v.comprador_nome,
+      email:v.comprador_email,
+      telefone:v.comprador_telefone,
+      origem:'pendente',
+      nivel:null,
+      ref_id:v.vendedor_id,
+      total_vendas:0,
+      total_comissoes:0,
+      data_cadastro:v.data_venda,
+      valor:v.valor,
+      _pendente:true,
+    }));
+    allAfiliados=[...pendentesMapeados,...(usuarios||[])];
     renderAfiliados(allAfiliados);
   }catch(e){tbody.innerHTML='<tr><td colspan="10" class="empty">Erro ao carregar</td></tr>';}
 }
@@ -506,6 +523,23 @@ function renderAfiliados(usuarios){
   const tbody=document.getElementById('tab-afiliados-body');
   if(!usuarios.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Nenhum afiliado</td></tr>';return;}
   tbody.innerHTML=usuarios.map(u=>{
+    if(u._pendente){
+      const nomeEsc=(u.nome||'').replace(/'/g,"\\'");
+      const emailEsc=(u.email||'').replace(/'/g,"\\'");
+      const telEsc=(u.telefone||'').replace(/'/g,"\\'");
+      return '<tr style="opacity:.85">'
+        +'<td><span style="font-family:monospace;font-size:.72rem;color:var(--muted)">—</span></td>'
+        +'<td style="font-weight:600">'+(u.nome||'—')+'</td>'
+        +'<td style="color:var(--muted);font-size:.8rem">'+(u.email||'—')+'</td>'
+        +'<td><span class="status-badge pendente">⏳ Pendente</span></td>'
+        +'<td style="text-align:center">—</td>'
+        +'<td style="font-family:monospace;font-size:.78rem;color:var(--muted)">'+(u.ref_id||'—')+'</td>'
+        +'<td style="text-align:center">—</td>'
+        +'<td style="color:var(--muted)">'+fmt(u.valor||0)+' (nao pago)</td>'
+        +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(u.data_cadastro)+'</td>'
+        +'<td><button class="btn green" onclick="converterPendenteCortesia(\''+nomeEsc+'\',\''+emailEsc+'\',\''+telEsc+'\')" style="font-size:.75rem">🎁 Tornar Cortesia</button></td>'
+        +'</tr>';
+    }
     const cortesia=u.origem==='cortesia';
     return '<tr>'
       +'<td><span style="font-family:monospace;font-size:.78rem;background:var(--bg2);padding:2px 8px;border-radius:4px">'+u.id+'</span></td>'
@@ -529,15 +563,18 @@ function filtrarAfiliados(q){
   renderAfiliados(f);
 }
 
-function abrirModalCortesia(){
-  document.getElementById('cort-nome').value='';
-  document.getElementById('cort-email').value='';
+function abrirModalCortesia(nome,email,telefone){
+  document.getElementById('cort-nome').value=nome||'';
+  document.getElementById('cort-email').value=email||'';
   document.getElementById('cort-cpf').value='';
-  document.getElementById('cort-telefone').value='';
+  document.getElementById('cort-telefone').value=telefone||'';
   document.getElementById('cort-senha').value='';
   document.getElementById('cort-refid').value='FL01';
   const fb=document.getElementById('fb-cortesia');fb.style.display='none';
   document.getElementById('cortesia-modal').style.display='flex';
+}
+function converterPendenteCortesia(nome,email,telefone){
+  abrirModalCortesia(nome,email,telefone);
 }
 function fecharModalCortesia(){
   document.getElementById('cortesia-modal').style.display='none';
