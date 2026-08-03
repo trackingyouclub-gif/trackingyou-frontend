@@ -421,6 +421,11 @@ function showTab(t){
 
 function fmt(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',');}
 function fmtDate(d){return new Date(d).toLocaleDateString('pt-BR');}
+function classeStatusSaque(status){
+  if(status==='pago')return'pago';
+  if(status==='recusado')return'cancelado';
+  return'solicitado';
+}
 
 async function carregarDados(){
   try{
@@ -626,7 +631,7 @@ async function carregarSaques(){
       +'<td><div style="font-weight:600">'+(s.usuarios?.nome||s.vendedor_id)+'</div><div style="font-size:.75rem;color:var(--muted)">'+(s.usuarios?.telefone||'')+'</div></td>'
       +'<td style="font-weight:700;color:var(--success)">'+fmt(s.valor)+'</td>'
       +'<td style="font-family:monospace;font-size:.8rem">'+s.pix_key+'</td>'
-      +'<td><span class="status-badge '+(s.status==='pago'?'pago':'solicitado')+'">'+s.status+'</span></td>'
+      +'<td><span class="status-badge '+classeStatusSaque(s.status)+'">'+s.status+'</span></td>'
       +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(s.data_solicitacao)+'</td>'
       +'<td><div class="btn-group">'
       +(s.status==='solicitado'?'<button class="btn green" onclick="aprovarSaque(\''+s.id+'\')">Aprovar</button><button class="btn red" onclick="recusarSaque(\''+s.id+'\')">Recusar</button>':'—')
@@ -747,7 +752,7 @@ async function carregarMovimentacoes(){
           +'<td style="color:var(--warning)">'+(taxa?fmt(taxa):'—')+'</td>'
           +'<td style="font-weight:700;color:var(--success)">'+fmt(liquido)+'</td>'
           +'<td style="font-family:monospace;font-size:.78rem">'+s.pix_key+'</td>'
-          +'<td><span class="status-badge '+(s.status==='pago'?'pago':'solicitado')+'">'+s.status+'</span></td>'
+          +'<td><span class="status-badge '+classeStatusSaque(s.status)+'">'+s.status+'</span></td>'
           +'<td style="color:var(--muted);font-size:.8rem">'+fmtDate(s.data_solicitacao)+'</td>'
           +'</tr>';
       }).join('');
