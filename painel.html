@@ -1145,10 +1145,10 @@ async function baixarFolderPDF(){
   doc.setLineWidth(1.4);
   doc.circle(cx,cy,22,'S');
   doc.setFillColor(...NAVY);
-  doc.circle(cx,cy-2,6.5,'F');
-  doc.triangle(cx-5,cy,cx+5,cy,cx,cy+7,'F');
+  doc.circle(cx,cy-3,6,'F');
+  doc.rect(cx-1.4,cy-3,2.8,9,'F');
   doc.setFillColor(...BLUE_LIGHT);
-  doc.circle(cx,cy-2,2,'F');
+  doc.circle(cx,cy-3,2,'F');
   doc.setFont('helvetica','bold');
   doc.setFontSize(10);
   doc.setTextColor(...NAVY);
