@@ -574,10 +574,11 @@ async function enviarCortesia(){
     const r=await fetch(B+'/api/admin/vendedor/cortesia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Erro ao cadastrar');
-    if(d.jaExistia){
-      fb.textContent=d.mensagem;fb.className='fb error';fb.style.display='block';
-    }else{
-      fb.textContent=d.mensagem||('Afiliado '+d.vendedor.id+' cadastrado com sucesso!');fb.className='fb success';fb.style.display='block';
+    const sucesso=!d.jaExistia||d.pedidoAtualizado;
+    fb.textContent=d.mensagem||(sucesso?('Afiliado '+d.vendedor.id+' processado com sucesso!'):'Nao foi possivel processar.');
+    fb.className=sucesso?'fb success':'fb error';
+    fb.style.display='block';
+    if(sucesso){
       carregarAfiliados();
       if(vendaId)carregarPedidos();
       setTimeout(fecharModalCortesia,1800);
