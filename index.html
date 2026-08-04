@@ -1083,5 +1083,35 @@ function escolherFrete(opcoes, idx) {
   </p>
   <div class="asaas-badge">🏦 Pagamentos processados com segurança pela Asaas</div>
 </footer>
+<!-- BOTAO FLUTUANTE WHATSAPP -->
+<a href="#" id="whatsapp-float" target="_blank" rel="noopener" style="position:fixed;right:20px;bottom:20px;width:60px;height:60px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.35);z-index:999;text-decoration:none;transition:transform 0.2s" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'" aria-label="Falar no WhatsApp">
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.05 2zm5.8 14.14c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94s.73-2.08.99-2.37c.26-.28.56-.35.75-.35s.38 0 .54.01c.18.01.41-.07.64.49.24.58.81 1.99.88 2.13.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.14-.28.28-.12.56.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.19-.28.37-.23.62-.14.26.09 1.64.77 1.92.91.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>
+</a>
+
+<script>
+(function(){
+  var WHATSAPP_FALLBACK = '5511963166971';
+  var msg = encodeURIComponent('Olá! Vim através do link da TrackingYou e tenho dúvidas sobre o produto.');
+  function setHref(numero){
+    var btn = document.getElementById('whatsapp-float');
+    if(btn) btn.href = 'https://wa.me/' + numero + '?text=' + msg;
+  }
+  setHref(WHATSAPP_FALLBACK);
+  try{
+    fetch(BACKEND_URL + '/api/vendedor/' + REF_ID + '/contato')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(d && d.telefone){
+          var limpo = d.telefone.replace(/\D/g,'');
+          if(limpo.length >= 10){
+            setHref(limpo.length <= 11 ? '55' + limpo : limpo);
+          }
+        }
+      })
+      .catch(function(){});
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>
